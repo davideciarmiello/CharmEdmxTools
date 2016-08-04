@@ -99,8 +99,10 @@ namespace CharmEdmxTools.EdmxConfig
         public bool Enabled { get; set; }
         public NamingNavigationPropertyItem ModelOne { get; set; }
         public NamingNavigationPropertyItem ModelMany { get; set; }
+        public NamingNavigationPropertyItem ModelOneParent { get; set; }
         public NamingNavigationPropertyItem ListOne { get; set; }
         public NamingNavigationPropertyItem ListMany { get; set; }
+        public NamingNavigationPropertyItem ListOneChilds { get; set; }
     }
 
     public class NamingNavigationPropertyItem

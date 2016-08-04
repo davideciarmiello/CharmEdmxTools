@@ -16,12 +16,26 @@ namespace CharmEdmxTools.EdmxUtils
         {
             var lst = items.ToList();
             foreach (var item in lst)
+            {
                 if (item != null && item.XNode.Parent != null)
+                {
                     item.XNode.Remove();
+                    item.IsDeleted = true;
+                }
+            }
         }
+
+
+        private static readonly ConcurrentDictionary<string, BaseItem> ToBaseItemsIsOfTypeCache = new ConcurrentDictionary<string, BaseItem>();
+        public static bool ToBaseItemsIsOfType<T>(XElement node)
+        {
+            var res = ToBaseItemsIsOfTypeCache.GetOrAdd(node.Name.LocalName, s => node.ToBaseItem());
+            return res is T;
+        }
+
         public static IEnumerable<T> ToBaseItems<T>(this IEnumerable<XElement> lst) where T : BaseItem
         {
-            return lst.Select(ToBaseItem).OfType<T>();
+            return lst.Where(ToBaseItemsIsOfType<T>).Select(ToBaseItem).OfType<T>();
         }
         public static IEnumerable<BaseItem> ToBaseItems(this IEnumerable<XElement> lst)
         {
@@ -73,7 +87,13 @@ namespace CharmEdmxTools.EdmxUtils
                 cfg.EdmMappingConfigurations.Add(GetEdmMappingConfigurationOracle());
             }
 
-            const int currentMaxVersion = 2;
+            if (cfg.Version < 3)
+            {
+                cfg.NamingNavigationProperty.ModelOneParent = new NamingNavigationPropertyItem() { Pattern = "PrincipalRole_PARENT" };
+                cfg.NamingNavigationProperty.ListOneChilds = new NamingNavigationPropertyItem() { Pattern = "DependentRole_CHILDREN" };
+            }
+
+            const int currentMaxVersion = 3;
             if (cfg.Version == currentMaxVersion)
                 return false;
             cfg.Version = currentMaxVersion;

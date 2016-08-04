@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,6 +8,23 @@ using System.Xml.Linq;
 
 namespace CharmEdmxTools.EdmxUtils.Models
 {
+    public class EdmxContainer
+    {
+        public EdmxContainer(XDocument xDoc)
+        {
+            StorageModels = xDoc.Document.Descendants().ToBaseItems<StorageModels>().FirstOrDefault();
+            ConceptualModels = xDoc.Document.Descendants().ToBaseItems<ConceptualModels>().FirstOrDefault();
+            Mappings = xDoc.Document.Descendants().ToBaseItems<Mappings>().FirstOrDefault();
+        }
+
+        public Mappings Mappings { get; set; }
+
+        public ConceptualModels ConceptualModels { get; set; }
+
+        public StorageModels StorageModels { get; set; }
+    }
+
+
     public class BaseItem
     {
         public override string ToString()
@@ -19,10 +37,17 @@ namespace CharmEdmxTools.EdmxUtils.Models
             XNode = node;
         }
 
+        private string _name;
         public virtual string Name
         {
-            get { var name = XNode.Attribute("Name"); return name == null ? null : name.Value; }
-            set { var name = XNode.Attribute("Name"); if (name != null) { name.Value = value; } }
+            get
+            {
+                if (_name != null)
+                    return _name;
+                _name = GetAttribute("Name");
+                return _name;
+            }
+            set { var att = XNode.Attribute("Name"); if (att != null) { att.Value = _name = value; } }
         }
 
         public IEnumerable<T> Descendants<T>() where T : BaseItem
@@ -35,6 +60,8 @@ namespace CharmEdmxTools.EdmxUtils.Models
             var name = XNode.Attribute(key);
             return name == null ? null : name.Value;
         }
+
+        public bool IsDeleted { get; set; }
     }
 
     public class StorageModels : BaseItem
@@ -42,14 +69,67 @@ namespace CharmEdmxTools.EdmxUtils.Models
         public StorageModels(XElement node)
             : base(node)
         {
+            Fill();
         }
+
+
+        private List<EntityType> _entityType;
+        private List<Property> _property;
+        private List<Association> _association;
+        private List<AssociationSet> _associationSet;
+        private List<NavigationProperty> _navigationProperty;
+        private List<EntitySet> _entitySet;
+
+        private void Fill()
+        {
+            _entityType = Descendants<EntityType>().ToList();
+            _property = Descendants<Property>().ToList();
+            _association = Descendants<Association>().ToList();
+            _associationSet = Descendants<AssociationSet>().ToList();
+            _navigationProperty = Descendants<NavigationProperty>().ToList();
+            _entitySet = Descendants<EntitySet>().ToList();
+        }
+        public IEnumerable<EntityType> EntityType { get { return _entityType.Where(it => !it.IsDeleted); } }
+        public IEnumerable<Property> Property { get { return _property.Where(it => !it.IsDeleted); } }
+        public IEnumerable<Association> Association { get { return _association.Where(it => !it.IsDeleted); } }
+        public IEnumerable<AssociationSet> AssociationSet { get { return _associationSet.Where(it => !it.IsDeleted); } }
+        public IEnumerable<NavigationProperty> NavigationProperty { get { return _navigationProperty.Where(it => !it.IsDeleted); } }
+        public IEnumerable<EntitySet> EntitySet { get { return _entitySet.Where(it => !it.IsDeleted); } }
+
     }
     public class ConceptualModels : BaseItem
     {
         public ConceptualModels(XElement node)
             : base(node)
         {
+            Fill();
         }
+
+        public EntityContainer EntityContainer { get; private set; }
+
+        private List<EntityType> _entityType;
+        private List<Property> _property;
+        private List<Association> _association;
+        private List<AssociationSet> _associationSet;
+        private List<NavigationProperty> _navigationProperty;
+        private List<EntitySet> _entitySet;
+
+        private void Fill()
+        {
+            EntityContainer = Descendants<EntityContainer>().First();
+            _entityType = Descendants<EntityType>().ToList();
+            _property = Descendants<Property>().ToList();
+            _association = Descendants<Association>().ToList();
+            _associationSet = Descendants<AssociationSet>().ToList();
+            _navigationProperty = Descendants<NavigationProperty>().ToList();
+            _entitySet = Descendants<EntitySet>().ToList();
+        }
+        public IEnumerable<EntityType> EntityType { get { return _entityType.Where(it => !it.IsDeleted); } }
+        public IEnumerable<Property> Property { get { return _property.Where(it => !it.IsDeleted); } }
+        public IEnumerable<Association> Association { get { return _association.Where(it => !it.IsDeleted); } }
+        public IEnumerable<AssociationSet> AssociationSet { get { return _associationSet.Where(it => !it.IsDeleted); } }
+        public IEnumerable<NavigationProperty> NavigationProperty { get { return _navigationProperty.Where(it => !it.IsDeleted); } }
+        public IEnumerable<EntitySet> EntitySet { get { return _entitySet.Where(it => !it.IsDeleted); } }
     }
 
     public class Mappings : BaseItem
@@ -64,7 +144,32 @@ namespace CharmEdmxTools.EdmxUtils.Models
         public EntityContainer(XElement node)
             : base(node)
         {
+            Fill();
         }
+
+        private List<EntityType> _entityType;
+        private List<Property> _property;
+        private List<Association> _association;
+        private List<AssociationSet> _associationSet;
+        private List<NavigationProperty> _navigationProperty;
+        private List<EntitySet> _entitySet;
+
+        private void Fill()
+        {
+            _entityType = Descendants<EntityType>().ToList();
+            _property = Descendants<Property>().ToList();
+            _association = Descendants<Association>().ToList();
+            _associationSet = Descendants<AssociationSet>().ToList();
+            _navigationProperty = Descendants<NavigationProperty>().ToList();
+            _entitySet = Descendants<EntitySet>().ToList();
+        }
+        public IEnumerable<EntityType> EntityType { get { return _entityType.Where(it => !it.IsDeleted); } }
+        public IEnumerable<Property> Property { get { return _property.Where(it => !it.IsDeleted); } }
+        public IEnumerable<Association> Association { get { return _association.Where(it => !it.IsDeleted); } }
+        public IEnumerable<AssociationSet> AssociationSet { get { return _associationSet.Where(it => !it.IsDeleted); } }
+        public IEnumerable<NavigationProperty> NavigationProperty { get { return _navigationProperty.Where(it => !it.IsDeleted); } }
+        public IEnumerable<EntitySet> EntitySet { get { return _entitySet.Where(it => !it.IsDeleted); } }
+
     }
     public class EntitySet : BaseItem
     {
@@ -79,12 +184,14 @@ namespace CharmEdmxTools.EdmxUtils.Models
             : base(node)
         {
         }
+        public string Association { get { return XNode.Attribute("Association").Value; } }
     }
     public class EntityType : BaseItem
     {
         public EntityType(XElement node)
             : base(node)
         {
+            Fill();
         }
 
         string _nameOriginalOfDb;
@@ -122,6 +229,33 @@ namespace CharmEdmxTools.EdmxUtils.Models
                 return _mappedEntitySetMapping;
             }
         }
+
+
+        //private List<EntityType> _entityType;
+        private List<Property> _property;
+        //private List<Association> _association;
+        //private List<AssociationSet> _associationSet;
+        private List<NavigationProperty> _navigationProperty;
+        //private List<EntitySet> _entitySet;
+
+        private void Fill()
+        {
+            //EntityContainer = Descendants<EntityContainer>().First();
+            //_entityType = Descendants<EntityType>().ToList();
+            _property = Descendants<Property>().ToList();
+            //_association = Descendants<Association>().ToList();
+            //_associationSet = Descendants<AssociationSet>().ToList();
+            _navigationProperty = Descendants<NavigationProperty>().ToList();
+            //_entitySet = Descendants<EntitySet>().ToList();
+        }
+        //public IEnumerable<EntityType> EntityType { get { return _entityType.Where(it => !it.IsDeleted); } }
+        public IEnumerable<Property> Property { get { return _property.Where(it => !it.IsDeleted); } }
+        //public IEnumerable<Association> Association { get { return _association.Where(it => !it.IsDeleted); } }
+        //public IEnumerable<AssociationSet> AssociationSet { get { return _associationSet.Where(it => !it.IsDeleted); } }
+        public IEnumerable<NavigationProperty> NavigationProperty { get { return _navigationProperty.Where(it => !it.IsDeleted); } }
+        //public IEnumerable<EntitySet> EntitySet { get { return _entitySet.Where(it => !it.IsDeleted); } }
+
+
     }
     public class Key : BaseItem
     {
@@ -199,6 +333,8 @@ namespace CharmEdmxTools.EdmxUtils.Models
         {
             get
             {
+                if (_association != null && !_association.IsDeleted)
+                    return _association;
                 var name = Relationship;
                 string clearedName = name;
                 var indx = clearedName.IndexOf(".");
@@ -226,15 +362,85 @@ namespace CharmEdmxTools.EdmxUtils.Models
     }
     public class Association : BaseItem
     {
+        private string _principalRole;
+        private string _principalPropertyRef;
+        private string _dependentRoleOriginal;
+        private string _dependentPropertyRef;
+        //private string _dependentRole;
+
         public Association(XElement node)
             : base(node)
         {
+
         }
 
-        public string PrincipalRole { get { return XNode.Descendants().Where(it => it.Name.LocalName == "Principal").Select(it => it.Attribute("Role").Value).FirstOrDefault(); } }
-        public string PrincipalPropertyRef { get { return XNode.Descendants().Where(it => it.Name.LocalName == "Principal").SelectMany(it => it.Descendants()).ToBaseItems<PropertyRef>().Select(it => it.Name).FirstOrDefault(); } }
-        public string DependentRole { get { return XNode.Descendants().Where(it => it.Name.LocalName == "Dependent").Select(it => it.Attribute("Role").Value).FirstOrDefault(); } }
-        public string DependentPropertyRef { get { return XNode.Descendants().Where(it => it.Name.LocalName == "Dependent").SelectMany(it => it.Descendants()).ToBaseItems<PropertyRef>().Select(it => it.Name).FirstOrDefault(); } }
+        private void FillProps()
+        {
+            //_dependentRole = DependentRoleGet();
+            //if (DependentRole != DependentRoleOriginal)
+            //{
+
+            //}
+        }
+
+        public string PrincipalRole
+        {
+            get { return _principalRole ?? (_principalRole = XNode.Descendants().Where(it => it.Name.LocalName == "Principal").Select(it => it.Attribute("Role").Value).FirstOrDefault()); }
+        }
+
+        public string PrincipalPropertyRef
+        {
+            get { return _principalPropertyRef ?? (_principalPropertyRef = XNode.Descendants().Where(it => it.Name.LocalName == "Principal").SelectMany(it => it.Descendants()).ToBaseItems<PropertyRef>().Select(it => it.Name).FirstOrDefault()); }
+        }
+
+        public string DependentRole { get { return DependentRoleOriginal; } }
+
+        public string DependentRoleOriginal
+        {
+            get { return _dependentRoleOriginal ?? (_dependentRoleOriginal = XNode.Descendants().Where(it => it.Name.LocalName == "Dependent").Select(it => it.Attribute("Role").Value).FirstOrDefault()); }
+        }
+
+        public string DependentPropertyRef
+        {
+            get { return _dependentPropertyRef ?? (_dependentPropertyRef = XNode.Descendants().Where(it => it.Name.LocalName == "Dependent").SelectMany(it => it.Descendants()).ToBaseItems<PropertyRef>().Select(it => it.Name).FirstOrDefault()); }
+        }
+
+        private readonly ConcurrentDictionary<string, string> _dependentRoleClearCache = new ConcurrentDictionary<string, string>();
+        public string DependentRoleTableName
+        {
+            get { return _dependentRoleClearCache.GetOrAdd(DependentRoleOriginal, DependentRoleGet); }
+        }
+
+        private string DependentRoleGet(string dependentRoleOriginal)
+        {
+            var res = dependentRoleOriginal;
+            var parent = XNode.Parent;
+            while (parent.Name.LocalName != "Runtime")
+                parent = parent.Parent;
+            var nodes = parent.Descendants().ToBaseItems<EntityTypeMapping>();
+            var end = this.Descendants<End>().First(it => it.Role == res);
+            var type = end.GetAttribute("Type");
+            var xx = nodes.Where(it => it.TypeName == type).ToList();
+            if (xx.Count == 0)
+            {
+                var entitySet = parent.Descendants().ToBaseItems<EntitySet>().Where(it => it.GetAttribute("EntityType") == type).ToList();
+                if (entitySet.Count == 1)
+                {
+                    return entitySet.First().Name;
+                }
+            }
+            else if (xx.Count == 1)
+            {
+                var name = xx.Select(it => it.XNode.Parent).ToBaseItems<EntitySetMapping>().Select(it => it.Name).First();
+                return name;
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+            return res;
+        }
+
     }
 
 

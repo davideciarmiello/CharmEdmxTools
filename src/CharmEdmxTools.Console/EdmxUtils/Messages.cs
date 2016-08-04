@@ -33,6 +33,7 @@ namespace CharmEdmxTools.EdmxUtils
         public virtual string ErroreFixPropertiesAttributes { get { return "ERROR: FixPropertiesAttributes - Type {0} not managed"; } }
         public virtual string AvvioClearEdmxPreservingKeyFields { get { return "Starting ClearEdmxPreservingKeyFields: all non-key fields will be deleted."; } }
         public virtual string EliminazioneEntityDaConceptualModels { get { return "Elimination of entity '{0}' to Conceptual Models (Entity not found in Storage Models)."; } }
+        public virtual string EliminazioneAssociationDaConceptualModels { get { return "Elimination of the association '{0}' ({1}.{2} -> {3}.{4}) to Conceptual Models (Association not found in the pattern of StorageModels)."; } }
         public virtual string EliminazionePropertyDaConceptualModels { get { return "Elimination of the property '{0}. {1}' to Conceptual Models (Property not found in the pattern of StorageModels)."; } }
         public virtual string ErroreImpossibileEliminarePropertyDaStorage { get { return "ERROR: Can not delete the property '{0}. {1}' by Storage Models, it is a Key (Property not found in the pattern of ConceptualModels)."; } }
         public virtual string EliminazionePropertyDaStorageModels { get { return "Elimination of the property '{0}. {1}' by Storage Models (Property not found in the pattern of ConceptualModels)."; } }
@@ -55,6 +56,7 @@ namespace CharmEdmxTools.EdmxUtils
         public override string ErroreFixPropertiesAttributes { get { return "ERRORE: FixPropertiesAttributes - Tipo {0} non gestito"; } }
         public override string AvvioClearEdmxPreservingKeyFields { get { return "Avvio di ClearEdmxPreservingKeyFields: tutti i campi non key verranno eliminati."; } }
         public override string EliminazioneEntityDaConceptualModels { get { return "Eliminazione dell'entity '{0}' da ConceptualModels (Entity non trovata in StorageModels)"; } }
+        public override string EliminazioneAssociationDaConceptualModels { get { return "Eliminazione dell'associazione '{0}' ({1}.{2} -> {3}.{4}) da ConceptualModels (Association non trovata in StorageModels)."; } }
         public override string EliminazionePropertyDaConceptualModels { get { return "Eliminazione della property '{0}.{1}' da ConceptualModels (Property non trovata nel modello di StorageModels)"; } }
         public override string ErroreImpossibileEliminarePropertyDaStorage { get { return "ERROR: Impossibile eliminazione la property '{0}.{1}' da StorageModels, è una Key (Property non trovata nel modello di ConceptualModels)"; } }
         public override string EliminazionePropertyDaStorageModels { get { return "Eliminazione della property '{0}.{1}' da StorageModels (Property non trovata nel modello di ConceptualModels)"; } }
