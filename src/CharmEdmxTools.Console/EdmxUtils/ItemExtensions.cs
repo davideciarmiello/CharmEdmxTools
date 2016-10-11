@@ -69,10 +69,23 @@ namespace CharmEdmxTools.EdmxUtils
             });
         }
 
+        private static void AddIfNotExists(this List<edmMappingConfiguration> lst, edmMappingConfiguration newItem)
+        {
+            if (lst.All(it => it.ProviderName != newItem.ProviderName))
+                lst.Add(newItem);
+        }
 
         public static bool FillDefaultConfiguration(this CharmEdmxConfiguration cfg)
         {
-            if (cfg.Version < 1 || cfg.NamingNavigationProperty == null)
+            int maxVersion = -1;
+            var versionLower = new Func<int, bool>(version =>
+            {
+                if (version > maxVersion)
+                    maxVersion = version;
+                return cfg.Version < version;
+            });
+
+            if (versionLower(1) || cfg.NamingNavigationProperty == null)
             {
                 cfg.NamingNavigationProperty = cfg.NamingNavigationProperty ?? new NamingNavigationProperty();
                 cfg.NamingNavigationProperty.Enabled = false;
@@ -82,64 +95,82 @@ namespace CharmEdmxTools.EdmxUtils
                 cfg.NamingNavigationProperty.ListMany = new NamingNavigationPropertyItem() { Pattern = "ListDependentRole_DependentPropertyRef" };
             }
 
-            if (cfg.Version < 2)
+            if (versionLower(2))
             {
-                cfg.EdmMappingConfigurations.Add(GetEdmMappingConfigurationOracle());
+                cfg.EdmMappingConfigurations.AddIfNotExists(GetEdmMappingConfigurationOracle());
             }
 
-            if (cfg.Version < 3)
+            if (versionLower(3))
             {
                 cfg.NamingNavigationProperty.ModelOneParent = new NamingNavigationPropertyItem() { Pattern = "PrincipalRole_PARENT" };
                 cfg.NamingNavigationProperty.ListOneChilds = new NamingNavigationPropertyItem() { Pattern = "DependentRole_CHILDREN" };
             }
 
-            const int currentMaxVersion = 3;
-            if (cfg.Version == currentMaxVersion)
+            //if (versionLower(4))
+            //{
+            //    cfg.EdmMappingConfigurations.AddIfNotExists(GetEdmMappingConfigurationSql());
+            //}
+
+            if (cfg.Version >= maxVersion)
                 return false;
-            cfg.Version = currentMaxVersion;
+            cfg.Version = maxVersion;
             return true;
+        }
+
+        private static edmMappingConfiguration GetEdmMappingConfigurationSql()
+        {
+            throw new NotImplementedException();
+        }
+
+        private class AttributeTrasformationHelper
+        {
+            public AttributeTrasformation New(string name, string value)
+            {
+                return new AttributeTrasformation(name, value);
+            }
         }
 
         private static edmMappingConfiguration GetEdmMappingConfigurationOracle()
         {
+            var at = new AttributeTrasformationHelper();
             var res = new edmMappingConfiguration() { ProviderName = "Oracle.ManagedDataAccess.Client" };
-            res.edmMappings.Add(new edmMapping("guid raw", new AttributeTrasformation("Type", "Guid"), new AttributeTrasformation("MaxLength;FixedLength;Unicode;", null)));
-            res.edmMappings.Add(new edmMapping("date", new AttributeTrasformation("Type", "DateTime"), new AttributeTrasformation("MaxLength;FixedLength;Unicode;", null)));
-            res.edmMappings.Add(new edmMapping("char;varchar2", new AttributeTrasformation("Type", "String"), new AttributeTrasformation("MaxLength", null) { ValueStorageAttributeName = "MaxLength" }));
-            res.edmMappings.Add(new edmMapping("nclob;clob", new AttributeTrasformation("Type", "String"), new AttributeTrasformation("MaxLength", "Max")));
-            res.edmMappings.Add(new edmMapping("blob", new AttributeTrasformation("Type", "Binary"), new AttributeTrasformation("MaxLength", "Max"), new AttributeTrasformation("FixedLength", "false"), new AttributeTrasformation("Unicode", null)));
+            res.edmMappings.Add(new edmMapping("guid raw", at.New("Type", "Guid"), at.New("MaxLength;FixedLength;Unicode;", null)));
+            res.edmMappings.Add(new edmMapping("date", at.New("Type", "DateTime"), at.New("MaxLength;FixedLength;Unicode;", null)));
+            res.edmMappings.Add(new edmMapping("char;varchar2", at.New("Type", "String"), new AttributeTrasformation("MaxLength", null) { ValueStorageAttributeName = "MaxLength" }));
+            res.edmMappings.Add(new edmMapping("nclob;clob", at.New("Type", "String"), at.New("MaxLength", "Max")));
+            res.edmMappings.Add(new edmMapping("blob", at.New("Type", "Binary"), at.New("MaxLength", "Max"), at.New("FixedLength", "false"), at.New("Unicode", null)));
 
-            res.edmMappings.Add(new edmMapping("number", new AttributeTrasformation("Type", "Boolean"), new AttributeTrasformation("Precision;Scale;MaxLength;FixedLength;Unicode;", null))
+            res.edmMappings.Add(new edmMapping("number", at.New("Type", "Boolean"), at.New("Precision;Scale;MaxLength;FixedLength;Unicode;", null))
             {
                 MinPrecision = "1",
                 MaxPrecision = "1",
                 MaxScale = "0"
             });
-            res.edmMappings.Add(new edmMapping("number", new AttributeTrasformation("Type", "Byte"), new AttributeTrasformation("Precision;Scale;MaxLength;FixedLength;Unicode;", null))
+            res.edmMappings.Add(new edmMapping("number", at.New("Type", "Byte"), at.New("Precision;Scale;MaxLength;FixedLength;Unicode;", null))
             {
                 MinPrecision = "2",
                 MaxPrecision = "3",
                 MaxScale = "0"
             });
-            res.edmMappings.Add(new edmMapping("number", new AttributeTrasformation("Type", "Int16"), new AttributeTrasformation("Precision;Scale;MaxLength;FixedLength;Unicode;", null))
+            res.edmMappings.Add(new edmMapping("number", at.New("Type", "Int16"), at.New("Precision;Scale;MaxLength;FixedLength;Unicode;", null))
             {
                 MinPrecision = "4",
                 MaxPrecision = "5",
                 MaxScale = "0"
             });
-            res.edmMappings.Add(new edmMapping("number", new AttributeTrasformation("Type", "Int32"), new AttributeTrasformation("Precision;Scale;MaxLength;FixedLength;Unicode;", null))
+            res.edmMappings.Add(new edmMapping("number", at.New("Type", "Int32"), at.New("Precision;Scale;MaxLength;FixedLength;Unicode;", null))
             {
                 MinPrecision = "6",
                 MaxPrecision = "10",
                 MaxScale = "0"
             });
-            res.edmMappings.Add(new edmMapping("number", new AttributeTrasformation("Type", "Int64"), new AttributeTrasformation("Precision;Scale;MaxLength;FixedLength;Unicode;", null))
+            res.edmMappings.Add(new edmMapping("number", at.New("Type", "Int64"), at.New("Precision;Scale;MaxLength;FixedLength;Unicode;", null))
             {
                 MinPrecision = "11",
                 MaxPrecision = "19",
                 MaxScale = "0"
             });
-            res.edmMappings.Add(new edmMapping("number", new AttributeTrasformation("Type", "Decimal"), new AttributeTrasformation("MaxLength;FixedLength;Unicode;", null), new AttributeTrasformation("Precision;Scale;", null) { ValueFromStorageAttribute = true }));
+            res.edmMappings.Add(new edmMapping("number", at.New("Type", "Decimal"), at.New("MaxLength;FixedLength;Unicode;", null), new AttributeTrasformation("Precision;Scale;", null) { ValueFromStorageAttribute = true }));
 
             return res;
         }
