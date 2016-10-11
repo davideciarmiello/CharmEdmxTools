@@ -44,6 +44,7 @@ namespace CharmEdmxTools.Console
             //var mgr = new EdmxManager(@"R:\Davide\GrinDbContext.edmx");
             //var mgr = new EdmxManager(@"C:\Davide\Progetti\ConsoleApplication1\ConsoleApplication1\GrinModel.edmx", null, null);
             //var mgr = new EdmxManager(@"C:\tfs\GRIN\dev\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx", null, null);
+            
             var cfg = CharmEdmxConfiguration.Load(@"C:\tfs\GRIN\dev\src\Gse.Grin.Platform.Solution\Gse.Grin.Platform.Solution.sln.CharmEdmxTools");
             var mgr = new EdmxManager(@"C:\tfs\GRIN\dev\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx", null, cfg);
 
