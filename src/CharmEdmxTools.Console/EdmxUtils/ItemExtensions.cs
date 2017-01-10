@@ -106,10 +106,10 @@ namespace CharmEdmxTools.EdmxUtils
                 cfg.NamingNavigationProperty.ListOneChilds = new NamingNavigationPropertyItem() { Pattern = "DependentRole_CHILDREN" };
             }
 
-            //if (versionLower(4))
-            //{
-            //    cfg.EdmMappingConfigurations.AddIfNotExists(GetEdmMappingConfigurationSql());
-            //}
+            if (versionLower(4))
+            {
+                cfg.EdmMappingConfigurations.AddIfNotExists(GetEdmMappingConfigurationSql());
+            }
 
             if (cfg.Version >= maxVersion)
                 return false;
@@ -119,7 +119,29 @@ namespace CharmEdmxTools.EdmxUtils
 
         private static edmMappingConfiguration GetEdmMappingConfigurationSql()
         {
-            throw new NotImplementedException();
+            var at = new AttributeTrasformationHelper();
+            var res = new edmMappingConfiguration() { ProviderName = "System.Data.EntityClient" };
+            res.edmMappings.Add(new edmMapping("guid raw", at.New("Type", "Guid"), at.New("MaxLength;FixedLength;Unicode;", "")));
+            res.edmMappings.Add(new edmMapping("date", at.New("Type", "DateTime"), at.New("MaxLength;FixedLength;Unicode;", "")));
+            res.edmMappings.Add(new edmMapping("char;nchar;varchar;nvarchar", at.New("Type", "String"), new AttributeTrasformation("MaxLength", null) { ValueStorageAttributeName = "MaxLength" }));
+            res.edmMappings.Add(new edmMapping("text;ntext", at.New("Type", "String"), at.New("MaxLength", "Max")));
+            res.edmMappings.Add(new edmMapping("varbinary", at.New("Type", "Binary"), at.New("MaxLength", "Max"), at.New("FixedLength", "false"), at.New("Unicode", "")));
+            res.edmMappings.Add(new edmMapping("bit", at.New("Type", "Boolean"), at.New("Precision;Scale;MaxLength;FixedLength;Unicode;", "")));
+            res.edmMappings.Add(new edmMapping("tinyint", at.New("Type", "Byte"), at.New("Precision;Scale;MaxLength;FixedLength;Unicode;", "")));
+            res.edmMappings.Add(new edmMapping("smallint", at.New("Type", "Int16"), at.New("Precision;Scale;MaxLength;FixedLength;Unicode;", "")));
+            res.edmMappings.Add(new edmMapping("int", at.New("Type", "Int32"), at.New("Precision;Scale;MaxLength;FixedLength;Unicode;", "")));
+            res.edmMappings.Add(new edmMapping("bigint", at.New("Type", "Int64"), at.New("Precision;Scale;MaxLength;FixedLength;Unicode;", "")));
+            res.edmMappings.Add(new edmMapping("decimal;numeric;money", at.New("Type", "Decimal"), at.New("MaxLength;FixedLength;Unicode;", ""), new AttributeTrasformation("Precision;Scale;", null) { ValueFromStorageAttribute = true }));
+            return res;
+            //var cfg = CharmEdmxConfiguration.Load(@"C:\Davide\UserProfile\Desktop\SGMSolution.sln.CharmEdmxTools");
+            //string ss = null;
+            //foreach (var cf in cfg.EdmMappingConfigurations[0].edmMappings)
+            //{
+            //    var trasforms = cf.ConceptualTrasformations.Select(it => string.Format("at.New(\"{0}\", {1})", it.Name, it.Value == null ? "null" : String.Concat("\"", it.Value, "\""))).ToList();
+            //    var xx = string.Format("res.edmMappings.Add(new edmMapping(\"{0}\", {1}));", cf.DbType, string.Join(", ", trasforms));
+            //    ss += (xx) + Environment.NewLine;
+            //}
+            //throw new Exception();
         }
 
         private class AttributeTrasformationHelper

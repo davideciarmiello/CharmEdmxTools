@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using CharmEdmxTools.EdmxUtils;
 
@@ -226,50 +227,63 @@ namespace CharmEdmxTools.EdmxConfig
         }
     }
 
-    [Serializable]
-    public class conceptualAttributes : Dictionary<string, string>, IXmlSerializable
-    {
-        public string Type { get; set; }
-        #region IXmlSerializable Members
-        public System.Xml.Schema.XmlSchema GetSchema()
-        {
-            return null;
-        }
+    //[Serializable]
+    //public class conceptualAttributes : Dictionary<string, string>, IXmlSerializable
+    //{
+    //    public conceptualAttributes()
+    //    {
+    //    }
+    //    protected conceptualAttributes(SerializationInfo info, StreamingContext context)
+    //        : base(info, context)
+    //    {
 
-        public void ReadXml(System.Xml.XmlReader reader)
-        {
-            //XmlSerializer keySerializer = new XmlSerializer(typeof(string));
-            //XmlSerializer valueSerializer = new XmlSerializer(typeof(string));
+    //    }
+    //    public override void GetObjectData(SerializationInfo info, StreamingContext context)
+    //    {
+    //        base.GetObjectData(info, context);
+    //    }
 
-            bool wasEmpty = reader.IsEmptyElement;
-            reader.Read();
+    //    public string Type { get; set; }
+    //    #region IXmlSerializable Members
+    //    public System.Xml.Schema.XmlSchema GetSchema()
+    //    {
+    //        return null;
+    //    }
 
-            if (wasEmpty)
-                return;
+    //    public void ReadXml(System.Xml.XmlReader reader)
+    //    {
+    //        //XmlSerializer keySerializer = new XmlSerializer(typeof(string));
+    //        //XmlSerializer valueSerializer = new XmlSerializer(typeof(string));
 
-            while (reader.NodeType != System.Xml.XmlNodeType.EndElement)
-            {
-                if (reader.AttributeCount > 0)
-                {
-                    for (int attInd = 0; attInd < reader.AttributeCount; attInd++)
-                    {
-                        reader.MoveToAttribute(attInd);
-                        Add(reader.Name, reader.Value);
-                    }
-                }
-                reader.MoveToContent();
-            }
-            reader.ReadEndElement();
-        }
+    //        bool wasEmpty = reader.IsEmptyElement;
+    //        reader.Read();
 
-        public void WriteXml(System.Xml.XmlWriter writer)
-        {
-            foreach (var key in this.Keys)
-            {
-                writer.WriteAttributeString(key, "", this[key]);
-            }
-        }
-        #endregion
-    }
+    //        if (wasEmpty)
+    //            return;
+
+    //        while (reader.NodeType != System.Xml.XmlNodeType.EndElement)
+    //        {
+    //            if (reader.AttributeCount > 0)
+    //            {
+    //                for (int attInd = 0; attInd < reader.AttributeCount; attInd++)
+    //                {
+    //                    reader.MoveToAttribute(attInd);
+    //                    Add(reader.Name, reader.Value);
+    //                }
+    //            }
+    //            reader.MoveToContent();
+    //        }
+    //        reader.ReadEndElement();
+    //    }
+
+    //    public void WriteXml(System.Xml.XmlWriter writer)
+    //    {
+    //        foreach (var key in this.Keys)
+    //        {
+    //            writer.WriteAttributeString(key, "", this[key]);
+    //        }
+    //    }
+    //    #endregion
+    //}
 
 }
