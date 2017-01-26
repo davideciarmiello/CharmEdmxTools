@@ -285,10 +285,10 @@ namespace CharmEdmxTools
                         return false;
                     }
                 }
-
+                
                 var workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(item.ContainingProject.FullName);
                 var serverUri = workspaceInfo.ServerUri;
-
+                
                 using (var connection = new TfsTeamProjectCollection(serverUri))
                 {
                     var vcs = connection.GetService<VersionControlServer>();
