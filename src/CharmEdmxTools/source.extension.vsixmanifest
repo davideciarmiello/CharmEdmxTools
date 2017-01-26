@@ -11,10 +11,6 @@
     <InstallationTarget Version="[12.0,15.0)" Id="Microsoft.VisualStudio.Premium" />
     <InstallationTarget Version="[12.0,15.0)" Id="Microsoft.VisualStudio.Enterprise" />
     <InstallationTarget Version="[12.0,15.0)" Id="Microsoft.VisualStudio.Community" />
-    <InstallationTarget Version="[12.0,15.0)" Id="Microsoft.VisualStudio.VSWinExpress" />
-    <InstallationTarget Version="[12.0,15.0)" Id="Microsoft.VisualStudio.VWDExpress" />
-    <InstallationTarget Version="[12.0,15.0)" Id="Microsoft.VisualStudio.VSWinDesktopExpress" />
-    <InstallationTarget Version="[12.0,15.0)" Id="Microsoft.VisualStudio.IntegratedShell" />
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
