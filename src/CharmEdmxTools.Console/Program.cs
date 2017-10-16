@@ -46,8 +46,11 @@ namespace CharmEdmxTools.Console
             //var mgr = new EdmxManager(@"C:\tfs\GRIN\dev\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx", null, null);
             
             var cfg = CharmEdmxConfiguration.Load(@"C:\tfs\GRIN\dev\src\Gse.Grin.Platform.Solution\Gse.Grin.Platform.Solution.sln.CharmEdmxTools");
-            var mgr = new EdmxManager(@"C:\tfs\GRIN\dev\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx", null, cfg);
+            var mgr = new EdmxManager(@"C:\tfs\GRIN\dev\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx", System.Console.WriteLine, cfg);
 
+            mgr.FieldsManualOperations();
+            mgr.FixTabelleECampiEliminati();
+            
             //mgr = new EdmxManager(@"C:\Davide\test.edmx", null, null);
             //mgr.Avvia();
             mgr.AssociationContainsDifferentTypes();
@@ -56,6 +59,7 @@ namespace CharmEdmxTools.Console
             mgr.FixPropertiesAttributes();
             //mgr.ClearEdmxPreservingKeyFields();
             mgr.FixConceptualModelNames();
+            
             mgr.FixTabelleECampiEliminati();
             var edited = mgr.Salva();
             if (mgr.StorageTypeNotManaged.Count > 0)

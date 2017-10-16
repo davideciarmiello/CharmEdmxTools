@@ -626,5 +626,45 @@ namespace CharmEdmxTools.EdmxUtils
             new BaseItem[] { field.MappedScalarProperty, field }.RemoveAll();
         }
 
+        public void FieldsManualOperations()
+        {
+            if (config.ManualOperations == null || config.ManualOperations.Count == 0)
+                return;
+            var storageModels = edmx.StorageModels;
+            var storageModelsEntityType = storageModels.EntityType.ToList();
+            //var conceptualModels = edmx.ConceptualModels;
+            //var conceptualModelsEntityType = conceptualModels.EntityType.ToList();
+            //foreach (var entityType in conceptualModelsEntityType)
+            //{
+            //    var storageEntityType = storageModelsEntityType.Where(it => it.Name == entityType.NameOriginalOfDb).FirstOrDefault();
+            //    if (storageEntityType == null) // è stata eliminata dal db, ma c'è ancora sull'edmx
+            //    {
+            //        logger(string.Format(Messages.Current.EliminazioneEntityDaConceptualModels, entityType.Name));
+            //        DeleteTableFromConceptualModels(conceptualModels, entityType);
+            //    }
+            //    else
+            //    {
+            //        var storageProps = storageEntityType.Property.ToList();
+            //        var conceptualProps = entityType.Property.ToList();
+            //        var conceptualPropsToDelete = conceptualProps.Where(it => !storageProps.Select(p => p.Name).Contains(it.NameOriginalOfDb)).ToList();
+            //        foreach (var prop in conceptualPropsToDelete)
+            //        {
+            //            logger(string.Format(Messages.Current.EliminazionePropertyDaConceptualModels, entityType.Name, prop.Name));
+            //            DeletePropertyFromConceptualModels(conceptualModels, entityType, prop);
+            //        }
+            foreach (var operation in config.ManualOperations)
+            {
+                var storageEntityType = storageModelsEntityType.FirstOrDefault(it => it.NameOriginalOfDb.Equals(operation.TableName, StringComparison.OrdinalIgnoreCase));
+                if (storageEntityType == null)
+                    continue;
+                var storageProps = storageEntityType.Property.Where(x => x.NameOriginalOfDb.Equals(operation.FieldName, StringComparison.OrdinalIgnoreCase)).ToList();
+                var op = operation.Type;
+                if (op == ManualOperationType.RemoveField)
+                {
+                    storageProps.RemoveAll();
+                }
+            }
+
+        }
     }
 }

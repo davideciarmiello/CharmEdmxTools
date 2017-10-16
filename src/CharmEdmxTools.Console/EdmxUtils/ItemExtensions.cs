@@ -111,6 +111,13 @@ namespace CharmEdmxTools.EdmxUtils
                 cfg.EdmMappingConfigurations.AddIfNotExists(GetEdmMappingConfigurationSql());
             }
 
+            if (versionLower(5))
+            {
+                if (cfg.ManualOperations == null)
+                    cfg.ManualOperations = new List<ManualOperation>();
+                cfg.ManualOperations.Add(new ManualOperation() { TableName = "Table1", FieldName = "Field1", Type = ManualOperationType.RemoveField });
+            }
+
             if (cfg.Version >= maxVersion)
                 return false;
             cfg.Version = maxVersion;

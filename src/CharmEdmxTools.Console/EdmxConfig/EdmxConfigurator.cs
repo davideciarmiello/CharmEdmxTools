@@ -21,6 +21,7 @@ namespace CharmEdmxTools.EdmxConfig
             SccPocoFixer = new SccPocoFixer();
             EdmMappingConfigurations = new List<edmMappingConfiguration>();
             NamingNavigationProperty = new NamingNavigationProperty();
+            ManualOperations = new List<ManualOperation>();
             //edmMappings = new List<edmMappings>();
         }
 
@@ -50,6 +51,8 @@ namespace CharmEdmxTools.EdmxConfig
         public SccPocoFixer SccPocoFixer { get; set; }
         public NamingNavigationProperty NamingNavigationProperty { get; set; }
         public List<edmMappingConfiguration> EdmMappingConfigurations { get; set; }
+
+        public List<ManualOperation> ManualOperations { get; set; }
 
         //public string GetValue(string key, string defaultValue = "")
         //{
@@ -84,14 +87,6 @@ namespace CharmEdmxTools.EdmxConfig
 
         [XmlAttribute("plugin")]
         public string SccPlugin { get; set; }
-    }
-
-    public class add
-    {
-        [XmlAttribute("key")]
-        public string key { get; set; }
-        [XmlAttribute("value")]
-        public string value { get; set; }
     }
 
     public class NamingNavigationProperty
@@ -227,63 +222,24 @@ namespace CharmEdmxTools.EdmxConfig
         }
     }
 
-    //[Serializable]
-    //public class conceptualAttributes : Dictionary<string, string>, IXmlSerializable
-    //{
-    //    public conceptualAttributes()
-    //    {
-    //    }
-    //    protected conceptualAttributes(SerializationInfo info, StreamingContext context)
-    //        : base(info, context)
-    //    {
 
-    //    }
-    //    public override void GetObjectData(SerializationInfo info, StreamingContext context)
-    //    {
-    //        base.GetObjectData(info, context);
-    //    }
+    [XmlType("ManualOperation")]
+    [XmlRoot("ManualOperation")]
+    public class ManualOperation
+    {
+        [XmlAttribute]
+        public string TableName { get; set; }
+        
+        [XmlAttribute]
+        public string FieldName { get; set; }
 
-    //    public string Type { get; set; }
-    //    #region IXmlSerializable Members
-    //    public System.Xml.Schema.XmlSchema GetSchema()
-    //    {
-    //        return null;
-    //    }
+        [XmlAttribute]
+        public ManualOperationType Type { get; set; }
+    }
 
-    //    public void ReadXml(System.Xml.XmlReader reader)
-    //    {
-    //        //XmlSerializer keySerializer = new XmlSerializer(typeof(string));
-    //        //XmlSerializer valueSerializer = new XmlSerializer(typeof(string));
-
-    //        bool wasEmpty = reader.IsEmptyElement;
-    //        reader.Read();
-
-    //        if (wasEmpty)
-    //            return;
-
-    //        while (reader.NodeType != System.Xml.XmlNodeType.EndElement)
-    //        {
-    //            if (reader.AttributeCount > 0)
-    //            {
-    //                for (int attInd = 0; attInd < reader.AttributeCount; attInd++)
-    //                {
-    //                    reader.MoveToAttribute(attInd);
-    //                    Add(reader.Name, reader.Value);
-    //                }
-    //            }
-    //            reader.MoveToContent();
-    //        }
-    //        reader.ReadEndElement();
-    //    }
-
-    //    public void WriteXml(System.Xml.XmlWriter writer)
-    //    {
-    //        foreach (var key in this.Keys)
-    //        {
-    //            writer.WriteAttributeString(key, "", this[key]);
-    //        }
-    //    }
-    //    #endregion
-    //}
+    public enum ManualOperationType
+    {
+        RemoveField
+    }
 
 }

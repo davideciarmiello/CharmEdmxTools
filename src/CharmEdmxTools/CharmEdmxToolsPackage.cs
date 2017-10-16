@@ -167,6 +167,7 @@ namespace CharmEdmxTools
 
             if (commandId == PkgCmdIDList.cmdidEdmxExecAllFixs)
             {
+                mgr.FieldsManualOperations();
                 mgr.FixTabelleECampiEliminati();
                 if (!mgr.AssociationContainsDifferentTypes())
                     mgr.FixTabelleNonPresentiInConceptual();
