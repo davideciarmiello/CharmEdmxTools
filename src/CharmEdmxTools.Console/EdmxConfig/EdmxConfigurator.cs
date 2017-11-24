@@ -50,9 +50,9 @@ namespace CharmEdmxTools.EdmxConfig
         //public List<add> appSettings { get; set; }
         public SccPocoFixer SccPocoFixer { get; set; }
         public NamingNavigationProperty NamingNavigationProperty { get; set; }
+        public List<ManualOperation> ManualOperations { get; set; }
         public List<edmMappingConfiguration> EdmMappingConfigurations { get; set; }
 
-        public List<ManualOperation> ManualOperations { get; set; }
 
         //public string GetValue(string key, string defaultValue = "")
         //{
@@ -228,18 +228,28 @@ namespace CharmEdmxTools.EdmxConfig
     public class ManualOperation
     {
         [XmlAttribute]
+        public ManualOperationType Type { get; set; }
+
+        [XmlAttribute]
         public string TableName { get; set; }
         
         [XmlAttribute]
         public string FieldName { get; set; }
 
         [XmlAttribute]
-        public ManualOperationType Type { get; set; }
+        public string AssociationName { get; set; }
+
+        [XmlAttribute]
+        public string AttributeName { get; set; }
+        [XmlAttribute]
+        public string AttributeValue { get; set; }
     }
 
     public enum ManualOperationType
     {
-        RemoveField
+        RemoveField,
+        RemoveAssociation,
+        SetFieldAttribute,
     }
 
 }

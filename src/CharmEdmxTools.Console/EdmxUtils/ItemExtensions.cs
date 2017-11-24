@@ -12,6 +12,11 @@ namespace CharmEdmxTools.EdmxUtils
 {
     public static class ItemExtensions
     {
+        public static bool EqualsInvariant(this string a, string b)
+        {
+            return string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+        }
+
         public static void RemoveAll(this IEnumerable<BaseItem> items)
         {
             var lst = items.ToList();
@@ -115,7 +120,9 @@ namespace CharmEdmxTools.EdmxUtils
             {
                 if (cfg.ManualOperations == null)
                     cfg.ManualOperations = new List<ManualOperation>();
-                cfg.ManualOperations.Add(new ManualOperation() { TableName = "Table1", FieldName = "Field1", Type = ManualOperationType.RemoveField });
+                cfg.ManualOperations.Add(new ManualOperation() { TableName = "TABLE_TEST", FieldName = "Field1", Type = ManualOperationType.RemoveField });
+                cfg.ManualOperations.Add(new ManualOperation() { TableName = "TABLE_TEST", FieldName = "Field1", Type = ManualOperationType.SetFieldAttribute, AttributeName = "Nullable", AttributeValue = "false" });
+                cfg.ManualOperations.Add(new ManualOperation() { Type = ManualOperationType.RemoveAssociation, AssociationName= "FK_TEST" });
             }
 
             if (cfg.Version >= maxVersion)

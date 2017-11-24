@@ -630,6 +630,8 @@ namespace CharmEdmxTools.EdmxUtils
         {
             if (config.ManualOperations == null || config.ManualOperations.Count == 0)
                 return;
+            if (config.ManualOperations.All(x => x.TableName == "TABLE_TEST" || x.AssociationName == "FK_TEST"))
+                return;
             var storageModels = edmx.StorageModels;
             var storageModelsEntityType = storageModels.EntityType.ToList();
             //var conceptualModels = edmx.ConceptualModels;
@@ -654,14 +656,64 @@ namespace CharmEdmxTools.EdmxUtils
             //        }
             foreach (var operation in config.ManualOperations)
             {
-                var storageEntityType = storageModelsEntityType.FirstOrDefault(it => it.NameOriginalOfDb.Equals(operation.TableName, StringComparison.OrdinalIgnoreCase));
-                if (storageEntityType == null)
-                    continue;
-                var storageProps = storageEntityType.Property.Where(x => x.NameOriginalOfDb.Equals(operation.FieldName, StringComparison.OrdinalIgnoreCase)).ToList();
                 var op = operation.Type;
-                if (op == ManualOperationType.RemoveField)
+                if (op == ManualOperationType.RemoveField || op == ManualOperationType.SetFieldAttribute)
                 {
-                    storageProps.RemoveAll();
+                    var storageEntityType =
+                        storageModelsEntityType.FirstOrDefault(
+                            it => it.NameOriginalOfDb.Equals(operation.TableName, StringComparison.OrdinalIgnoreCase));
+                    if (storageEntityType == null)
+                        continue;
+                    var storageProps =
+                        storageEntityType.Property.Where(
+                                x => x.NameOriginalOfDb.Equals(operation.FieldName, StringComparison.OrdinalIgnoreCase))
+                            .ToList();
+                    if (!storageProps.Any())
+                        continue;
+                    if (op == ManualOperationType.RemoveField)
+                    {
+                        storageProps.RemoveAll();
+                        var associations =
+                            storageModels.Association
+                                .Where(it => it.DependentRoleTableName.EqualsInvariant(operation.TableName))
+                                .Where(it => it.DependentPropertyRef.EqualsInvariant(operation.FieldName)).ToList();
+                        if (associations.Any())
+                        {
+                            associations.RemoveAll();
+                            var names = associations.Select(it => it.Name).ToList();
+                            var associationsSet =
+                                storageModels.AssociationSet.Where(it => names.Contains(it.Name)).ToList();
+                            associationsSet.RemoveAll();
+                        }
+                    }
+                    else if (op == ManualOperationType.SetFieldAttribute)
+                    {
+                        foreach (var storageProp in storageProps)
+                        {
+                            if (operation.AttributeValue != null)
+                                storageProp.XNode.SetAttributeValue(operation.AttributeName, operation.AttributeValue);
+                            else
+                            {
+                                var attrib = storageProp.XNode.Attribute(operation.AttributeName);
+                                if (attrib != null)
+                                    attrib.Remove();
+                            }
+                        }
+                    }
+                }
+                else if (op == ManualOperationType.RemoveAssociation)
+                {
+                    var associations =
+                            storageModels.Association
+                                .Where(it => it.Name.EqualsInvariant(operation.AssociationName)).ToList();
+                    if (associations.Any())
+                    {
+                        associations.RemoveAll();
+                        var names = associations.Select(it => it.Name).ToList();
+                        var associationsSet =
+                            storageModels.AssociationSet.Where(it => names.Contains(it.Name)).ToList();
+                        associationsSet.RemoveAll();
+                    }
                 }
             }
 

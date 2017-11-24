@@ -44,23 +44,39 @@ namespace CharmEdmxTools.Console
             //var mgr = new EdmxManager(@"R:\Davide\GrinDbContext.edmx");
             //var mgr = new EdmxManager(@"C:\Davide\Progetti\ConsoleApplication1\ConsoleApplication1\GrinModel.edmx", null, null);
             //var mgr = new EdmxManager(@"C:\tfs\GRIN\dev\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx", null, null);
-            
-            var cfg = CharmEdmxConfiguration.Load(@"C:\tfs\GRIN\dev\src\Gse.Grin.Platform.Solution\Gse.Grin.Platform.Solution.sln.CharmEdmxTools");
-            var mgr = new EdmxManager(@"C:\tfs\GRIN\dev\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx", System.Console.WriteLine, cfg);
+            var cfgFileName =
+                @"C:\tfs\GRIN\dev-grit\src\Gse.Grin.Platform.Solution\Gse.Grin.Platform.Solution.sln.CharmEdmxTools";
+            var cfg = CharmEdmxConfiguration.Load(cfgFileName);
+            var mgr = new EdmxManager(@"C:\tfs\GRIN\dev-grit\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx", System.Console.WriteLine, cfg);
 
-            mgr.FieldsManualOperations();
-            mgr.FixTabelleECampiEliminati();
-            
-            //mgr = new EdmxManager(@"C:\Davide\test.edmx", null, null);
-            //mgr.Avvia();
-            mgr.AssociationContainsDifferentTypes();
-            mgr.FixTabelleNonPresentiInConceptual();
-            mgr.FixAssociations();
-            mgr.FixPropertiesAttributes();
-            //mgr.ClearEdmxPreservingKeyFields();
-            mgr.FixConceptualModelNames();
-            
-            mgr.FixTabelleECampiEliminati();
+            //cfg.ManualOperations.Add(new ManualOperation() { Type = ManualOperationType.RemoveField, TableName = "TL_LRD_LOG_RICH_DETT", FieldName = "CON_ID_CONVENZIONE" });
+            //cfg.Write(cfgFileName);
+
+            {
+                mgr.FieldsManualOperations();
+                mgr.FixTabelleECampiEliminati();
+                if (!mgr.AssociationContainsDifferentTypes())
+                    mgr.FixTabelleNonPresentiInConceptual();
+                mgr.FixAssociations();
+                mgr.FixPropertiesAttributes();
+                mgr.FixConceptualModelNames();
+                //     return;
+            }
+
+
+            //mgr.FieldsManualOperations();
+            //mgr.FixTabelleECampiEliminati();
+
+            ////mgr = new EdmxManager(@"C:\Davide\test.edmx", null, null);
+            ////mgr.Avvia();
+            //mgr.AssociationContainsDifferentTypes();
+            //mgr.FixTabelleNonPresentiInConceptual();
+            //mgr.FixAssociations();
+            //mgr.FixPropertiesAttributes();
+            ////mgr.ClearEdmxPreservingKeyFields();
+            //mgr.FixConceptualModelNames();
+
+            //mgr.FixTabelleECampiEliminati();
             var edited = mgr.Salva();
             if (mgr.StorageTypeNotManaged.Count > 0)
                 System.Console.WriteLine("Tipi non gestiti:" + string.Join(",", mgr.StorageTypeNotManaged));
