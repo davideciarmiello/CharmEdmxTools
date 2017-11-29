@@ -5,6 +5,15 @@ using System;
 
 namespace CharmEdmxTools
 {
+
+    internal static class FileExtensions
+    {
+        public const string CSharp = ".cs";
+        public const string VisualBasic = ".vb";
+        public const string EntityDataModel = ".edmx";
+        public const string Xml = ".xml";
+        public const string Sql = ".sql";
+    }
     static class GuidList
     {
         public const string guidCharmEdmxToolsPkgString = "1601c91e-ce52-4571-b547-b26295df8eb9";
