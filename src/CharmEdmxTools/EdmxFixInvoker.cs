@@ -65,8 +65,8 @@ namespace CharmEdmxTools
             if (menuCommand == null)
                 return;
 
-            menuCommand.Visible = true;
-            return;
+            //menuCommand.Visible = true;
+            //return;
 
             if (_dte2.ActiveDocument == null)
                 menuCommand.Visible = false;

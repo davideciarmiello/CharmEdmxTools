@@ -225,9 +225,6 @@
 
   <Symbols>
     <!-- This is the package guid. -->
-    <!--<GuidSymbol name="guidCharmEdmxToolsPkg" value="{1601c91e-ce52-4571-b547-b26295df8eb9}" />
-    
-    -->
     <!-- This is the guid used to group the menu commands together -->
     <!--
     <GuidSymbol name="guidCharmEdmxToolsCmdSet" value="{28d08155-17d3-4ee4-b5ab-e2782a09d442}">
@@ -238,7 +235,7 @@
 
 
     <!-- This is the package guid. -->
-    <GuidSymbol name="guidCharmEdmxToolsPackage" value="{1601c91e-ce52-4571-b547-b26295df8eb9}" />
+    <GuidSymbol name="guidCharmEdmxToolsPackage" value="{1601c91e-ce52-4571-b547-b26295df8eb8}" />
 
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidDbContextPackageCmdSet" value="{28d08155-17d3-4ee4-b5ab-e2782a09d442}" >
