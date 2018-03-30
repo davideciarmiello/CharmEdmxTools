@@ -298,6 +298,9 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\AppCodeShared\TfsHelper.cs">
+      <Link>AppCodeShared\TfsHelper.cs</Link>
+    </Compile>
     <Compile Include="..\CharmEdmxTools.Console\EdmxConfig\EdmxConfigurator.cs">
       <Link>EdmxConfig\EdmxConfigurator.cs</Link>
     </Compile>
@@ -324,7 +327,6 @@
     <Compile Include="CharmEdmxToolsPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PkgCmdID.cs" />
-    <Compile Include="Tfs\TfsHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">

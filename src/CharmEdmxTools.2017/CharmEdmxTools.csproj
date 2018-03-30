@@ -54,6 +54,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\AppCodeShared\TfsHelper.cs">
+      <Link>SharedClass\TfsHelper.cs</Link>
+    </Compile>
     <Compile Include="..\CharmEdmxTools\EdmxFixInvoker.cs">
       <Link>SharedClass\EdmxFixInvoker.cs</Link>
     </Compile>

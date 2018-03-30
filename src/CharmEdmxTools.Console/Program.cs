@@ -2,11 +2,11 @@
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
+using AppCodeShared;
 using CharmEdmxTools.EdmxConfig;
 using CharmEdmxTools.EdmxUtils;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.VersionControl.Client;
-using VsProjectUtils;
 
 namespace CharmEdmxTools.Console
 {

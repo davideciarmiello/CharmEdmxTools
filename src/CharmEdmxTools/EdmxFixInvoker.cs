@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.Caching;
 using System.Text;
 using System.Threading.Tasks;
+using AppCodeShared;
 using CharmEdmxTools.EdmxConfig;
 using CharmEdmxTools.EdmxUtils;
 using EnvDTE;
@@ -16,7 +17,6 @@ using Microsoft.TeamFoundation.VersionControl.Client;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using VsProjectUtils;
 
 namespace CharmEdmxTools
 {
