@@ -1,8 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
 using CharmEdmxTools.EdmxConfig;
 using CharmEdmxTools.EdmxUtils;
+using Microsoft.TeamFoundation.Client;
+using Microsoft.TeamFoundation.VersionControl.Client;
+using VsProjectUtils;
 
 namespace CharmEdmxTools.Console
 {
@@ -10,7 +14,8 @@ namespace CharmEdmxTools.Console
     {
         static void Main(string[] args)
         {
-
+            TestTfs();
+            return;
             //var newCfg = new CharmEdmxConfiguration();
             ////newCfg.appSettings.Add(new add() { key = "prova", value = "valore" });
             //var map = new edmMapping() { DbType = "dbtype", Where = "Precision < 18", MaxPrecision = "8" };
@@ -123,6 +128,17 @@ namespace CharmEdmxTools.Console
                 ret[i] = Convert.ToByte(text.Substring(i * 2, 2), 16);
             }
             return ret;
+        }
+
+
+        static void TestTfs()
+        {
+            var fullPath = @"C:\tfs\GRIN\dev-rin1\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\TA_ACC_ACTION_CONTROL.cs";
+            var proj = new FileInfo(@"C:\tfs\GRIN\dev-rin1\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\Gse.Grin.DataBaseContext.EF.csproj");
+            var tfsHelper = new TfsHelper(proj.FullName);
+            tfsHelper.Connect();
+            tfsHelper.PendAdd(fullPath);
+            tfsHelper.Close();
         }
 
     }

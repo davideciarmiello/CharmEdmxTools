@@ -16,6 +16,7 @@ using Microsoft.TeamFoundation.VersionControl.Client;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using VsProjectUtils;
 
 namespace CharmEdmxTools
 {
@@ -86,74 +87,86 @@ namespace CharmEdmxTools
 
             var logger = GetOutputPaneWriteFunction();
 
-            if (configCreatedPath != null)
+            try
             {
-                logger(string.Format(Messages.Current.CreatedConfig, configCreatedPath));
-                return;
-            }
-
-            logger(string.Format(Messages.Current.Avvioelaborazionedi, selectedItem.Name));
-
-            var edmxDocument = selectedItem.Document;
-            if (edmxDocument != null && !edmxDocument.Saved)
-                edmxDocument.Save();
-
-            var mgr = new EdmxManager(edmxPath, logger, config);
-
-            if (commandId == PkgCmdIDList.cmdidEdmxExecAllFixs)
-            {
-                mgr.FieldsManualOperations();
-                mgr.FixTabelleECampiEliminati();
-                if (!mgr.AssociationContainsDifferentTypes())
-                    mgr.FixTabelleNonPresentiInConceptual();
-                mgr.FixAssociations();
-                mgr.FixPropertiesAttributes();
-                mgr.FixConceptualModelNames();
-            }
-            else if (commandId == PkgCmdIDList.cmdidEdmxClearAllProperties)
-            {
-                mgr.ClearEdmxPreservingKeyFields();
-            }
-
-            if (mgr.IsChanged())
-            {
-                var designerIsOpened = false;
-                if (edmxDocument != null && edmxDocument.ActiveWindow != null)
+                if (configCreatedPath != null)
                 {
-                    edmxDocument.Close(vsSaveChanges.vsSaveChangesNo);
-                    designerIsOpened = true;
+                    logger(string.Format(Messages.Current.CreatedConfig, configCreatedPath));
+                    return;
                 }
-                logger(Messages.Current.SavingEdmx);
-                mgr.Salva();
-                logger(Messages.Current.RielaborazioneEdmx);
-                var window = _dte2.ItemOperations.OpenFile(edmxPath);
-                window.Document.Save(); // faccio rielaborare i T4
-                if (!designerIsOpened)
-                    window.Document.Close(vsSaveChanges.vsSaveChangesYes);
-                logger(Messages.Current.OperazioneTerminataConSuccesso);
-            }
-            else
-            {
-                logger(Messages.Current.OperazioneTerminataSenzaModifiche);
-            }
 
-            if (config.SccPocoFixer.Enabled)
-            {
-                var ttname = selectedItem.Name.Remove(selectedItem.Name.Length - 4) + "tt";
-                var ttItem = selectedItem.ProjectItems.OfType<ProjectItem>().FirstOrDefault(it => string.Equals(it.Name, ttname, StringComparison.OrdinalIgnoreCase));
-                if (ttItem != null && _dte2.SourceControl != null)
+                logger(string.Format(Messages.Current.Avvioelaborazionedi, selectedItem.Name));
+
+                var edmxDocument = selectedItem.Document;
+                if (edmxDocument != null && !edmxDocument.Saved)
+                    edmxDocument.Save();
+
+                var mgr = new EdmxManager(edmxPath, logger, config);
+
+                if (commandId == PkgCmdIDList.cmdidEdmxExecAllFixs)
                 {
-                    var csname = selectedItem.Name.Remove(selectedItem.Name.Length - 4) + "cs";
-                    var allItems = ttItem.ProjectItems.OfType<ProjectItem>().Where(it => !string.Equals(it.Name, csname, System.StringComparison.OrdinalIgnoreCase)).ToList();
-                    var sscMgr = GetSccManager();
-                    foreach (var item in allItems)
+                    mgr.FieldsManualOperations();
+                    mgr.FixTabelleECampiEliminati();
+                    if (!mgr.AssociationContainsDifferentTypes())
+                        mgr.FixTabelleNonPresentiInConceptual();
+                    mgr.FixAssociations();
+                    mgr.FixPropertiesAttributes();
+                    mgr.FixConceptualModelNames();
+                }
+                else if (commandId == PkgCmdIDList.cmdidEdmxClearAllProperties)
+                {
+                    mgr.ClearEdmxPreservingKeyFields();
+                }
+
+                if (mgr.IsChanged())
+                {
+                    var designerIsOpened = false;
+                    if (edmxDocument != null && edmxDocument.ActiveWindow != null)
                     {
-                        if (EnsureAddFileToSccIfExists(item, ttItem, sscMgr))
+                        edmxDocument.Close(vsSaveChanges.vsSaveChangesNo);
+                        designerIsOpened = true;
+                    }
+                    logger(Messages.Current.SavingEdmx);
+                    mgr.Salva();
+                    logger(Messages.Current.RielaborazioneEdmx);
+                    var window = _dte2.ItemOperations.OpenFile(edmxPath);
+                    window.Document.Save(); // faccio rielaborare i T4
+                    if (!designerIsOpened)
+                        window.Document.Close(vsSaveChanges.vsSaveChangesYes);
+                    logger(Messages.Current.OperazioneTerminataConSuccesso);
+                }
+                else
+                {
+                    logger(Messages.Current.OperazioneTerminataSenzaModifiche);
+                }
+
+                if (config.SccPocoFixer.Enabled)
+                {
+                    var ttname = selectedItem.Name.Remove(selectedItem.Name.Length - 4) + "tt";
+                    var ttItem = selectedItem.ProjectItems.OfType<ProjectItem>().FirstOrDefault(it => string.Equals(it.Name, ttname, StringComparison.OrdinalIgnoreCase));
+                    if (ttItem != null && _dte2.SourceControl != null)
+                    {
+                        var csname = selectedItem.Name.Remove(selectedItem.Name.Length - 4) + "cs";
+                        var allItems = ttItem.ProjectItems.OfType<ProjectItem>().Where(it => !string.Equals(it.Name, csname, System.StringComparison.OrdinalIgnoreCase)).ToList();
+                        var sscMgr = GetSccManager();
+                        TfsHelper tfsHelper = null;
+                        foreach (var item in allItems)
                         {
-                            logger(string.Format(Messages.Current.AggiuntoFileASourceControl, item.Name));
+                            if (EnsureAddFileToSccIfExists(item, ttItem, sscMgr, ref tfsHelper))
+                            {
+                                logger(string.Format(Messages.Current.AggiuntoFileASourceControl, item.Name));
+                            }
+                        }
+                        if (tfsHelper != null)
+                        {
+                            tfsHelper.Close();
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                logger("ERROR: " + ex);
             }
         }
 
@@ -203,7 +216,7 @@ namespace CharmEdmxTools
             return sscMgr;
         }
 
-        private bool EnsureAddFileToSccIfExists(ProjectItem item, ProjectItem itemParent, IVsSccManager2 sscMgr)
+        private bool EnsureAddFileToSccIfExists(ProjectItem item, ProjectItem itemParent, IVsSccManager2 sscMgr, ref TfsHelper tfsHelper)
         {
             var fullPath = item.Properties.Item("FullPath").Value as string;
             if (!System.IO.File.Exists(fullPath))
@@ -222,39 +235,13 @@ namespace CharmEdmxTools
                     }
                 }
 
-                var workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(item.ContainingProject.FullName);
-                var serverUri = workspaceInfo.ServerUri;
-
-                using (var connection = new TfsTeamProjectCollection(serverUri))
+                if (tfsHelper == null)
                 {
-                    var vcs = connection.GetService<VersionControlServer>();
-                    var workspace = vcs.GetWorkspace(item.ContainingProject.FullName);
-
-                    var pendingChanges = workspace.GetPendingChanges();
-                    var dd = pendingChanges.Where(it => it.LocalItem == fullPath && it.IsDelete).ToArray();
-                    if (dd.Length > 0)
-                    {
-                        var items = dd.Select(it => it.LocalItem).ToList();
-                        items.ForEach(it =>
-                        {
-                            try { System.IO.File.Copy(it, it + ".tmptfs", true); File.Delete(it); }
-                            catch { }
-                        });
-                        workspace.Undo(dd);
-                        items.ForEach(it =>
-                        {
-                            try { System.IO.File.Copy(it + ".tmptfs", it, true); File.Delete(it + ".tmptfs"); }
-                            catch { }
-                        });
-                    }
-                    workspace.PendAdd(fullPath);
-
-                    try
-                    {
-                        Workstation.Current.EnsureUpdateWorkspaceInfoCache(vcs, vcs.AuthorizedUser);
-                    }
-                    catch { }
+                    tfsHelper = new TfsHelper(item.ContainingProject.FullName);
+                    tfsHelper.Connect(true);
                 }
+
+                tfsHelper.PendAdd(fullPath);
 
                 return true;
             }
