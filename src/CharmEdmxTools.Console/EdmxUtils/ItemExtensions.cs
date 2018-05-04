@@ -12,6 +12,32 @@ namespace CharmEdmxTools.EdmxUtils
 {
     public static class ItemExtensions
     {
+        public static TSource Add<TSource>(this TSource source, HashSet<BaseItem> hashSet) where  TSource: BaseItem
+        {
+            hashSet.Add(source);
+            return source;
+        }
+
+        public static TSource GetOrNull<TSource, TKey>(this ConcurrentDictionary<TKey, TSource> source, TKey keySelector)
+        {
+            TSource res;
+            if (source.TryGetValue(keySelector, out res))
+                return res;
+            return default(TSource);
+        }
+
+        public static ConcurrentDictionary<TKey, TSource> ToConcurrentDictionary<TSource, TKey>(
+            this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
+        {
+            return source.ToConcurrentDictionary(keySelector, source1 => source1);
+        }
+
+        public static ConcurrentDictionary<TKey, TElement> ToConcurrentDictionary<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector)
+        {
+            return new ConcurrentDictionary<TKey, TElement>(source.ToDictionary(keySelector, elementSelector));
+        }
+
+
         public static bool EqualsInvariant(this string a, string b)
         {
             return string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
@@ -32,7 +58,7 @@ namespace CharmEdmxTools.EdmxUtils
 
 
         private static readonly ConcurrentDictionary<string, BaseItem> ToBaseItemsIsOfTypeCache = new ConcurrentDictionary<string, BaseItem>();
-        public static bool ToBaseItemsIsOfType<T>(XElement node)
+        public static bool ToBaseItemsIsOfType<T>(this XElement node)
         {
             var res = ToBaseItemsIsOfTypeCache.GetOrAdd(node.Name.LocalName, s => node.ToBaseItem());
             return res is T;
@@ -122,7 +148,7 @@ namespace CharmEdmxTools.EdmxUtils
                     cfg.ManualOperations = new List<ManualOperation>();
                 cfg.ManualOperations.Add(new ManualOperation() { TableName = "TABLE_TEST", FieldName = "Field1", Type = ManualOperationType.RemoveField });
                 cfg.ManualOperations.Add(new ManualOperation() { TableName = "TABLE_TEST", FieldName = "Field1", Type = ManualOperationType.SetFieldAttribute, AttributeName = "Nullable", AttributeValue = "false" });
-                cfg.ManualOperations.Add(new ManualOperation() { Type = ManualOperationType.RemoveAssociation, AssociationName= "FK_TEST" });
+                cfg.ManualOperations.Add(new ManualOperation() { Type = ManualOperationType.RemoveAssociation, AssociationName = "FK_TEST" });
             }
 
             if (cfg.Version >= maxVersion)

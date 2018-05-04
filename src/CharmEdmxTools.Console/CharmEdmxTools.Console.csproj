@@ -204,6 +204,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity" />
     <Reference Include="System.IdentityModel.Tokens.Jwt, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.4.0.0\lib\net45\System.IdentityModel.Tokens.Jwt.dll</HintPath>
       <Private>True</Private>
@@ -230,6 +231,8 @@
     <Compile Include="..\AppCodeShared\TfsHelper.cs">
       <Link>AppCodeShared\TfsHelper.cs</Link>
     </Compile>
+    <Compile Include="ClassiTest\Class1.cs" />
+    <Compile Include="ClassiTest\EdmxManagerNew.cs" />
     <Compile Include="EdmxConfig\EdmxConfigurator.cs" />
     <Compile Include="EdmxUtils\EdmxManager.cs" />
     <Compile Include="EdmxUtils\ItemExtensions.cs" />

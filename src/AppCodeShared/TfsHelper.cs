@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.VersionControl.Client;
-
+using Microsoft.Win32;
 
 namespace AppCodeShared
 {
@@ -20,9 +20,9 @@ namespace AppCodeShared
             _projectFullName = projectFullName;
         }
 
-        TfsTeamProjectCollection connection;
-        VersionControlServer vcs;
-        Workspace workspace;
+        public TfsTeamProjectCollection connection;
+        public VersionControlServer vcs;
+        public Workspace workspace;
 
         private bool? _connected;
         public bool Connect(bool throwEx = false)
@@ -38,6 +38,7 @@ namespace AppCodeShared
                     ConnectMethodTwo(ref tfsFolder);
                     if (connection == null)
                         throw new Exception("Connect.workspaceInfo is null - ProjectFullName: " + _projectFullName + ".\r\nTry to launch tfs cache clear with: \r\ntf workspaces /collection:http://tfs.domain.com/DefaultCollection");
+                    EnsureUpdateWorkspaceInfoCache();
                     //MessageBox.Show(string.Format("GetLocalWorkspaceInfo recuperato dopo {0} tentativi", i + 1), "Errore connessione TFS", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
                 else
@@ -59,7 +60,7 @@ namespace AppCodeShared
                 //MessageBox.Show("TFS Connected", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 tfsFolder = tfsFolder ?? workspace.Folders
-                    .FirstOrDefault(x => _projectFullName.StartsWith(string.Concat(x.LocalItem, "\\"), StringComparison.OrdinalIgnoreCase));
+                    .FirstOrDefault(x => _projectFullName == x.LocalItem || _projectFullName.StartsWith(string.Concat(x.LocalItem, "\\"), StringComparison.OrdinalIgnoreCase));
 
                 _workspaceFolderTfsRoot = tfsFolder == null ? "$/" : tfsFolder.ServerItem;
                 _connected = true;
@@ -96,7 +97,7 @@ namespace AppCodeShared
                     {
                         foreach (WorkingFolder f in w.Folders)
                         {
-                            if (_projectFullName.StartsWith(string.Concat(f.LocalItem, "\\")))
+                            if (_projectFullName == f.LocalItem || _projectFullName.StartsWith(string.Concat(f.LocalItem, "\\")))
                             {
                                 connection = tfsCon;
                                 vcs = versionControl;
@@ -131,7 +132,7 @@ namespace AppCodeShared
                         .Select(x => x.Replace("SccTeamFoundationServer = ", "").Trim());
                     foreach (var tfsServer in tfsServers)
                     {
-                        if (!tfsServersHashset.Add(tfsServer))
+                        if (!tfsServersHashset.Add(tfsServer.ToLowerInvariant()))
                             continue;
                         yield return tfsServer;
                     }
@@ -141,22 +142,65 @@ namespace AppCodeShared
                 else
                     dir = dir.Parent;
             }
+
+            using (var registryKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\VisualStudio"))
+            {
+                if (registryKey != null)
+                {
+                    var versions = registryKey.GetSubKeyNames();
+                    foreach (var version in versions)
+                    {
+                        using (var instancesKey = registryKey.OpenSubKey(version + @"\TeamFoundation\Instances"))
+                        {
+                            if (instancesKey == null)
+                                continue;
+                            foreach (var instanceName in instancesKey.GetSubKeyNames())
+                            {
+                                using (var collectionsKey = instancesKey.OpenSubKey(instanceName + @"\Collections"))
+                                {
+                                    if (collectionsKey == null)
+                                        continue;
+                                    foreach (var collectionName in collectionsKey.GetSubKeyNames())
+                                    {
+                                        using (var collectionKey = collectionsKey.OpenSubKey(collectionName))
+                                        {
+                                            if (collectionKey == null)
+                                                continue;
+                                            var uri = collectionKey.GetValue("Uri") as string;
+                                            if (uri != null && tfsServersHashset.Add(uri.ToLowerInvariant()))
+                                            {
+                                                yield return uri;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public void EnsureUpdateWorkspaceInfoCache()
+        {
+            if (vcs == null) return;
+            try
+            {
+                Workstation.Current.EnsureUpdateWorkspaceInfoCache(vcs, vcs.AuthorizedUser);
+            }
+            catch { }
+
         }
 
         public void Close()
         {
             Commit();
-            if (vcs != null)
-                try
-                {
-                    Workstation.Current.EnsureUpdateWorkspaceInfoCache(vcs, vcs.AuthorizedUser);
-                }
-                catch { }
+            EnsureUpdateWorkspaceInfoCache();
             if (connection != null)
                 connection.Dispose();
         }
 
-        private string _workspaceFolderTfsRoot;
+        public string _workspaceFolderTfsRoot;
         private PendingChange[] _pendingChanges;
 
         public PendingChange[] GetPendingChangesCached()
@@ -246,7 +290,7 @@ namespace AppCodeShared
             });
         }
 
-        private int Commit()
+        public int Commit()
         {
             if (_pendingLocalChanges.Count == 0)
                 return 0;

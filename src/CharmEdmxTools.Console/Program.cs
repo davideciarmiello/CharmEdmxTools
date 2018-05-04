@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 using AppCodeShared;
+using CharmEdmxTools.ClassiTest;
 using CharmEdmxTools.EdmxConfig;
 using CharmEdmxTools.EdmxUtils;
 using Microsoft.TeamFoundation.Client;
@@ -12,9 +15,48 @@ namespace CharmEdmxTools.Console
 {
     class Program
     {
+        static void InvokeFull(EdmxManager mgr)
+        {
+            mgr.FieldsManualOperations();
+            mgr.FixTabelleECampiEliminati();
+            if (!mgr.AssociationContainsDifferentTypes())
+                mgr.FixTabelleNonPresentiInConceptual();
+            mgr.FixAssociations();
+            mgr.FixPropertiesAttributes();
+            mgr.FixConceptualModelNames();
+        }
+        static void InvokeFull(EdmxManagerNew mgr)
+        {
+            mgr.FieldsManualOperations();
+            mgr.FixTabelleECampiEliminati();
+            //if (!mgr.AssociationContainsDifferentTypes())
+            //    mgr.FixTabelleNonPresentiInConceptual();
+            //mgr.FixAssociations();
+            //mgr.FixPropertiesAttributes();
+            //mgr.FixConceptualModelNames();
+        }
+
         static void Main(string[] args)
         {
-            TestTfs();
+            var cfgFileName =
+                @"C:\tfs\GRIN\dev-rin1\src\Gse.Grin.Platform.Solution\Gse.Grin.Platform.Solution.sln.CharmEdmxTools";
+            var edmxFileName = cfgFileName.Replace("Gse.Grin.Platform.Solution.sln.CharmEdmxTools",
+                @"Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx");
+            var cfg = CharmEdmxConfiguration.Load(cfgFileName);
+            var xdoc = XDocument.Load(edmxFileName);
+            var x = new EdmxContainerNew(xdoc);
+
+
+            var sw = Stopwatch.StartNew();
+
+
+            var mgr = new EdmxManager(edmxFileName, System.Console.WriteLine, cfg);
+            InvokeFull(mgr);
+            sw.Stop();
+            //13 secondi
+            System.Console.WriteLine(sw.Elapsed);
+
+            //TestTfs();
             return;
             //var newCfg = new CharmEdmxConfiguration();
             ////newCfg.appSettings.Add(new add() { key = "prova", value = "valore" });
@@ -49,10 +91,6 @@ namespace CharmEdmxTools.Console
             //var mgr = new EdmxManager(@"R:\Davide\GrinDbContext.edmx");
             //var mgr = new EdmxManager(@"C:\Davide\Progetti\ConsoleApplication1\ConsoleApplication1\GrinModel.edmx", null, null);
             //var mgr = new EdmxManager(@"C:\tfs\GRIN\dev\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx", null, null);
-            var cfgFileName =
-                @"C:\tfs\GRIN\dev-grit\src\Gse.Grin.Platform.Solution\Gse.Grin.Platform.Solution.sln.CharmEdmxTools";
-            var cfg = CharmEdmxConfiguration.Load(cfgFileName);
-            var mgr = new EdmxManager(@"C:\tfs\GRIN\dev-grit\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx", System.Console.WriteLine, cfg);
 
             //cfg.ManualOperations.Add(new ManualOperation() { Type = ManualOperationType.RemoveField, TableName = "TL_LRD_LOG_RICH_DETT", FieldName = "CON_ID_CONVENZIONE" });
             //cfg.Write(cfgFileName);

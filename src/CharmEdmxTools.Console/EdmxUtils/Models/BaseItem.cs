@@ -177,6 +177,22 @@ namespace CharmEdmxTools.EdmxUtils.Models
             : base(node)
         {
         }
+
+
+        public string EntityType { get { var name = XNode.Attribute("EntityType"); return name == null ? null : name.Value; } }
+
+        public string EntityTypeWithoutNamespace
+        {
+            get
+            {
+                string clearedName = EntityType;
+                var indx = clearedName.IndexOf(".");
+                if (indx > -1)
+                    clearedName = clearedName.Remove(0, indx + 1);
+                return clearedName;
+            }
+        }
+
     }
     public class AssociationSet : BaseItem
     {
@@ -185,6 +201,18 @@ namespace CharmEdmxTools.EdmxUtils.Models
         {
         }
         public string Association { get { return XNode.Attribute("Association").Value; } }
+        
+        public string AssociationWithoutNamespace
+        {
+            get
+            {
+                string clearedName = Association;
+                var indx = clearedName.IndexOf(".");
+                if (indx > -1)
+                    clearedName = clearedName.Remove(0, indx + 1);
+                return clearedName;
+            }
+        }
     }
     public class EntityType : BaseItem
     {
@@ -469,6 +497,17 @@ namespace CharmEdmxTools.EdmxUtils.Models
             : base(node)
         {
         }
+
+        public string ConceptualTypeName
+        {
+            get { var name = XNode.Elements().First(x => x.Name.LocalName == "EntityTypeMapping").Attribute("TypeName"); return name == null ? null : name.Value; }
+        }
+
+        public string StoreEntitySet
+        {
+            get { var name = XNode.Descendants().First(x => x.Name.LocalName == "MappingFragment").Attribute("StoreEntitySet"); return name == null ? null : name.Value; }
+        }
+
     }
     public class EntityTypeMapping : BaseItem
     {
