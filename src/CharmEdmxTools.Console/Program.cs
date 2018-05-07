@@ -28,12 +28,13 @@ namespace CharmEdmxTools.Console
         static void InvokeFull(EdmxManagerNew mgr)
         {
             mgr.FieldsManualOperations();
+            var hasFkWithDifferentTypes = mgr.AssociationContainsDifferentTypes();
             mgr.FixTabelleECampiEliminati();
-            //if (!mgr.AssociationContainsDifferentTypes())
-            //    mgr.FixTabelleNonPresentiInConceptual();
-            //mgr.FixAssociations();
-            //mgr.FixPropertiesAttributes();
-            //mgr.FixConceptualModelNames();
+            if (!hasFkWithDifferentTypes)
+                mgr.FixTabelleNonPresentiInConceptual();
+            mgr.FixAssociations();
+            mgr.FixPropertiesAttributes();
+            mgr.FixConceptualModelNames();
         }
 
         static void Main(string[] args)
@@ -43,15 +44,15 @@ namespace CharmEdmxTools.Console
             var edmxFileName = cfgFileName.Replace("Gse.Grin.Platform.Solution.sln.CharmEdmxTools",
                 @"Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx");
             var cfg = CharmEdmxConfiguration.Load(cfgFileName);
-            var xdoc = XDocument.Load(edmxFileName);
-            var x = new EdmxContainerNew(xdoc);
-
-
+            //var xdoc = XDocument.Load(edmxFileName);
+            //var x = new EdmxContainerNew(xdoc);
+            
             var sw = Stopwatch.StartNew();
-
-
-            var mgr = new EdmxManager(edmxFileName, System.Console.WriteLine, cfg);
-            InvokeFull(mgr);
+            
+            //var mgr = new EdmxManager(edmxFileName, System.Console.WriteLine, cfg);
+            var mgrnew = new EdmxManagerNew(edmxFileName, System.Console.WriteLine, cfg);
+            sw = Stopwatch.StartNew();
+            InvokeFull(mgrnew);
             sw.Stop();
             //13 secondi
             System.Console.WriteLine(sw.Elapsed);
@@ -96,13 +97,13 @@ namespace CharmEdmxTools.Console
             //cfg.Write(cfgFileName);
 
             {
-                mgr.FieldsManualOperations();
-                mgr.FixTabelleECampiEliminati();
-                if (!mgr.AssociationContainsDifferentTypes())
-                    mgr.FixTabelleNonPresentiInConceptual();
-                mgr.FixAssociations();
-                mgr.FixPropertiesAttributes();
-                mgr.FixConceptualModelNames();
+                //mgr.FieldsManualOperations();
+                //mgr.FixTabelleECampiEliminati();
+                //if (!mgr.AssociationContainsDifferentTypes())
+                //    mgr.FixTabelleNonPresentiInConceptual();
+                //mgr.FixAssociations();
+                //mgr.FixPropertiesAttributes();
+                //mgr.FixConceptualModelNames();
                 //     return;
             }
 
@@ -120,9 +121,9 @@ namespace CharmEdmxTools.Console
             //mgr.FixConceptualModelNames();
 
             //mgr.FixTabelleECampiEliminati();
-            var edited = mgr.Salva();
-            if (mgr.StorageTypeNotManaged.Count > 0)
-                System.Console.WriteLine("Tipi non gestiti:" + string.Join(",", mgr.StorageTypeNotManaged));
+            //var edited = mgr.Salva();
+            //if (mgr.StorageTypeNotManaged.Count > 0)
+            //    System.Console.WriteLine("Tipi non gestiti:" + string.Join(",", mgr.StorageTypeNotManaged));
             System.Console.WriteLine("Premere un tasto per uscire.");
             System.Console.ReadKey();
         }

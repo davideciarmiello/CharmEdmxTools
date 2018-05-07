@@ -84,7 +84,7 @@ namespace CharmEdmxTools.EdmxUtils
 
         public List<string> StorageTypeNotManaged = new List<string>();
 
-        private List<string> FixPropertyAttributesDynamic(Property storagePropertyItem, Property conceptualPropertyItem, edmMappingConfiguration cfg, DataTable dt)
+        public static List<string> FixPropertyAttributesDynamic(Property storagePropertyItem, Property conceptualPropertyItem, edmMappingConfiguration cfg, DataTable dt)
         {
             var storageProperty = storagePropertyItem.XNode;
 
@@ -115,11 +115,11 @@ namespace CharmEdmxTools.EdmxUtils
             return lstRes;
         }
 
-        private string XElementSetAttributeValueOrRemove(XElement conceptualProperty, string attributeName, XAttribute attributeValue)
+        private static string XElementSetAttributeValueOrRemove(XElement conceptualProperty, string attributeName, XAttribute attributeValue)
         {
             return XElementSetAttributeValueOrRemove(conceptualProperty, attributeName, attributeValue == null ? null : attributeValue.Value);
         }
-        private string XElementSetAttributeValueOrRemove(XElement conceptualProperty, string attributeName, string attributeValue)
+        private static string XElementSetAttributeValueOrRemove(XElement conceptualProperty, string attributeName, string attributeValue)
         {
             var currAttr = conceptualProperty.Attribute(attributeName);
             var currAttrValue = currAttr == null ? null : currAttr.Value;
@@ -131,7 +131,7 @@ namespace CharmEdmxTools.EdmxUtils
             return res;
         }
 
-        private bool FixPropertyAttributesDynamicFilterItem(edmMapping mapping, XElement storageProperty, DataTable dt)
+        private static bool FixPropertyAttributesDynamicFilterItem(edmMapping mapping, XElement storageProperty, DataTable dt)
         {
             if (!string.IsNullOrWhiteSpace(mapping.DbType) && !mapping.DbTypes.Contains(storageProperty.Attribute("Type").Value))
                 return false;

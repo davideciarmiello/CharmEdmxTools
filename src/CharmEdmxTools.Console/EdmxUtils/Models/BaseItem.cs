@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using CharmEdmxTools.ClassiTest;
 
 namespace CharmEdmxTools.EdmxUtils.Models
 {
@@ -181,6 +182,7 @@ namespace CharmEdmxTools.EdmxUtils.Models
 
         public string EntityType { get { var name = XNode.Attribute("EntityType"); return name == null ? null : name.Value; } }
 
+        [Obsolete]
         public string EntityTypeWithoutNamespace
         {
             get
@@ -202,6 +204,7 @@ namespace CharmEdmxTools.EdmxUtils.Models
         }
         public string Association { get { return XNode.Attribute("Association").Value; } }
         
+        [Obsolete]
         public string AssociationWithoutNamespace
         {
             get
@@ -357,6 +360,7 @@ namespace CharmEdmxTools.EdmxUtils.Models
 
 
         Association _association;
+        [Obsolete]
         public Association Association
         {
             get
@@ -376,6 +380,7 @@ namespace CharmEdmxTools.EdmxUtils.Models
         /// <summary>
         /// se non è 1 a 1 è una lista (1 a n)
         /// </summary>
+        [Obsolete]
         public bool NavigationIsOneToOne
         {
             get
@@ -390,6 +395,12 @@ namespace CharmEdmxTools.EdmxUtils.Models
     }
     public class Association : BaseItem
     {
+        public Dictionary<string, ReferentialConstraintRelation> ConceptualRoles { get; set; }
+        public ReferentialConstraintRelation Principal { get; set; }
+        public ReferentialConstraintRelation Dependent { get; set; }
+
+
+
         private string _principalRole;
         private string _principalPropertyRef;
         private string _dependentRoleOriginal;
@@ -516,7 +527,7 @@ namespace CharmEdmxTools.EdmxUtils.Models
         {
         }
         public string TypeName { get { var name = XNode.Attribute("TypeName"); return name == null ? null : name.Value; } }
-
+        [Obsolete]
         public string TypeNameWithoutNamespace
         {
             get

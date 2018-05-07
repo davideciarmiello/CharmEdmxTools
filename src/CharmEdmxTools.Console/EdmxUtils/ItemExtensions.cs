@@ -12,13 +12,28 @@ namespace CharmEdmxTools.EdmxUtils
 {
     public static class ItemExtensions
     {
-        public static TSource Add<TSource>(this TSource source, HashSet<BaseItem> hashSet) where  TSource: BaseItem
+
+        public static string GetAttribute(this XElement xNode, string key)
+        {
+            var name = xNode.Attribute(key);
+            return name == null ? null : name.Value;
+        }
+
+
+        public static TSource Add<TSource>(this TSource source, HashSet<BaseItem> hashSet) where TSource : BaseItem
         {
             hashSet.Add(source);
             return source;
         }
 
         public static TSource GetOrNull<TSource, TKey>(this ConcurrentDictionary<TKey, TSource> source, TKey keySelector)
+        {
+            TSource res;
+            if (source.TryGetValue(keySelector, out res))
+                return res;
+            return default(TSource);
+        }
+        public static TSource GetOrNull<TSource, TKey>(this Dictionary<TKey, TSource> source, TKey keySelector)
         {
             TSource res;
             if (source.TryGetValue(keySelector, out res))
