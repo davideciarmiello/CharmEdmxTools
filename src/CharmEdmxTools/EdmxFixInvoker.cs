@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Runtime.Caching;
 using System.Text;
 using System.Threading.Tasks;
 using AppCodeShared;
+using CharmEdmxTools.ClassiTest;
 using CharmEdmxTools.EdmxConfig;
 using CharmEdmxTools.EdmxUtils;
 using EnvDTE;
@@ -97,26 +99,27 @@ namespace CharmEdmxTools
 
                 logger(string.Format(Messages.Current.Avvioelaborazionedi, selectedItem.Name));
 
+                var sw = Stopwatch.StartNew();
                 var edmxDocument = selectedItem.Document;
                 if (edmxDocument != null && !edmxDocument.Saved)
+                {
                     edmxDocument.Save();
+                    logger(string.Format(Messages.Current.SavedEdmxIn, sw.Elapsed));
+                }
 
-                var mgr = new EdmxManager(edmxPath, logger, config);
+                sw.Restart();
+                var mgr = new EdmxManagerNew(edmxPath, logger, config);
 
                 if (commandId == PkgCmdIDList.cmdidEdmxExecAllFixs)
                 {
-                    mgr.FieldsManualOperations();
-                    mgr.FixTabelleECampiEliminati();
-                    if (!mgr.AssociationContainsDifferentTypes())
-                        mgr.FixTabelleNonPresentiInConceptual();
-                    mgr.FixAssociations();
-                    mgr.FixPropertiesAttributes();
-                    mgr.FixConceptualModelNames();
+                    mgr.ExecAllFixs();
                 }
                 else if (commandId == PkgCmdIDList.cmdidEdmxClearAllProperties)
                 {
                     mgr.ClearEdmxPreservingKeyFields();
                 }
+
+                var tempoEsecuzioneFixs = sw.Elapsed;
 
                 if (mgr.IsChanged())
                 {
@@ -126,22 +129,26 @@ namespace CharmEdmxTools
                         edmxDocument.Close(vsSaveChanges.vsSaveChangesNo);
                         designerIsOpened = true;
                     }
-                    logger(Messages.Current.SavingEdmx);
+                    logger(string.Format(Messages.Current.SavingEdmxAfterFixIn, tempoEsecuzioneFixs));
                     mgr.Salva();
+                    sw.Restart();
                     logger(Messages.Current.RielaborazioneEdmx);
                     var window = _dte2.ItemOperations.OpenFile(edmxPath);
                     window.Document.Save(); // faccio rielaborare i T4
                     if (!designerIsOpened)
                         window.Document.Close(vsSaveChanges.vsSaveChangesYes);
-                    logger(Messages.Current.OperazioneTerminataConSuccesso);
+                    sw.Stop();
+                    logger(string.Format(Messages.Current.OperazioneTerminataConSuccessoIn, sw.Elapsed));
                 }
                 else
                 {
-                    logger(Messages.Current.OperazioneTerminataSenzaModifiche);
+                    logger(string.Format(Messages.Current.OperazioneTerminataSenzaModificheIn, tempoEsecuzioneFixs));
                 }
 
                 if (config.SccPocoFixer.Enabled)
                 {
+                    sw.Restart();
+                    logger(string.Format(Messages.Current.AvvioVerificaFilesSourceControl));
                     var ttname = selectedItem.Name.Remove(selectedItem.Name.Length - 4) + "tt";
                     var ttItem = selectedItem.ProjectItems.OfType<ProjectItem>().FirstOrDefault(it => string.Equals(it.Name, ttname, StringComparison.OrdinalIgnoreCase));
                     if (ttItem != null && _dte2.SourceControl != null)
@@ -162,6 +169,7 @@ namespace CharmEdmxTools
                             tfsHelper.Close();
                         }
                     }
+                    logger(string.Format(Messages.Current.OperazioneTerminataConSuccessoIn, sw.Elapsed));
                 }
             }
             catch (Exception ex)

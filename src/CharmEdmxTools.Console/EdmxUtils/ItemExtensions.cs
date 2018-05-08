@@ -88,9 +88,14 @@ namespace CharmEdmxTools.EdmxUtils
             return lst.Select(ToBaseItem);
         }
         private static ConcurrentDictionary<XElement, BaseItem> ToBaseItemCache = new ConcurrentDictionary<XElement, BaseItem>();
+        public static ConcurrentDictionary<XDocument, ConcurrentDictionary<XElement, BaseItem>> ToBaseItemDocumentCache = new ConcurrentDictionary<XDocument, ConcurrentDictionary<XElement, BaseItem>>();
         public static BaseItem ToBaseItem(this XElement nodeElement)
         {
-            return ToBaseItemCache.GetOrAdd(nodeElement, node =>
+            var cache = ToBaseItemCache;
+            if (nodeElement.Document != null)
+                cache = ToBaseItemDocumentCache.GetOrAdd(nodeElement.Document,
+                    document => new ConcurrentDictionary<XElement, BaseItem>());
+            return cache.GetOrAdd(nodeElement, node =>
             {
                 switch (node.Name.LocalName)
                 {

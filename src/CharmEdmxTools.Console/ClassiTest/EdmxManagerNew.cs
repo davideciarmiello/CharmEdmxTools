@@ -42,6 +42,20 @@ namespace CharmEdmxTools.ClassiTest
             return (currStr != xDocLoadStr);
         }
 
+        public void ExecAllFixs()
+        {
+            FieldsManualOperations();
+            var hasFkWithDifferentTypes = AssociationContainsDifferentTypes();
+            if (!hasFkWithDifferentTypes)
+            {
+                FixTabelleECampiEliminati();
+                FixTabelleNonPresentiInConceptual();
+            }
+            FixAssociations();
+            FixPropertiesAttributes();
+            FixConceptualModelNames();
+        }
+
 
         public void FieldsManualOperations()
         {
@@ -109,7 +123,6 @@ namespace CharmEdmxTools.ClassiTest
                         if (prop.Storage == null)
                         {
                             logger(string.Format(Messages.Current.EliminazionePropertyDaConceptualModels, entityType.Conceptual.Name, prop.Conceptual.Name));
-                            //DeletePropertyFromConceptualModels(conceptualModels, entityType, prop);
                             prop.Remove(edmx);
                         }
                         else if (prop.Conceptual == null)
@@ -121,7 +134,6 @@ namespace CharmEdmxTools.ClassiTest
                             else
                             {
                                 logger(string.Format(Messages.Current.EliminazionePropertyDaStorageModels, entityType.Storage.Name, prop.Storage.Name));
-                                //new[] { prop }.RemoveAll();
                                 prop.Remove(edmx);
                             }
                         }
@@ -354,6 +366,20 @@ namespace CharmEdmxTools.ClassiTest
                 .Replace("DependentPropertyRef", assoc.Conceptual.Dependent.PropertyRef)
                 .Replace("PrincipalRole", assoc.Conceptual.Principal.EndEntity.Conceptual.Name)
                 .Replace("PrincipalPropertyRef", assoc.Conceptual.Principal.PropertyRef);
+        }
+
+        public void ClearEdmxPreservingKeyFields()
+        {
+            logger(Messages.Current.AvvioClearEdmxPreservingKeyFields);
+            foreach (var entityType in edmx.Entities)
+            {
+                foreach (var entityTypeProperty in entityType.Properties)
+                {
+                    if (entityTypeProperty.StorageKey != null)
+                        continue;
+                    entityTypeProperty.Remove(edmx);
+                }
+            }
         }
     }
 }

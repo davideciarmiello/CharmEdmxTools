@@ -25,9 +25,14 @@ namespace CharmEdmxTools.EdmxUtils
 
         public virtual string Avvioelaborazionedi { get { return "Start processing '{0}'"; } }
         public virtual string SavingEdmx { get { return "Saving EDMX..."; } }
+        public virtual string SavingEdmxAfterFixIn { get { return "Saving EDMX after applied fixs in {0}"; } }
+        public virtual string SavedEdmxIn { get { return "Saved EDMX in {0}"; } }
         public virtual string RielaborazioneEdmx { get { return "Reworking EDMX with custom tools T4"; } }
         public virtual string OperazioneTerminataConSuccesso { get { return "The operation completed successfully."; } }
+        public virtual string OperazioneTerminataConSuccessoIn { get { return "The operation completed successfully in {0}."; } }
         public virtual string OperazioneTerminataSenzaModifiche { get { return "Operation terminated. There was no modification."; } }
+        public virtual string OperazioneTerminataSenzaModificheIn { get { return "Operation terminated. There was no modification in {0}."; } }
+        public virtual string AvvioVerificaFilesSourceControl { get { return "Starting check of added files at Source Control."; } }
         public virtual string AggiuntoFileASourceControl { get { return "Added file '{0}' to Source Control."; } }
         public virtual string EseguitoFixPropertiesAttributes { get { return "Executed FixPropertiesAttributes on '{0}.{1}' - {2}"; } }
         public virtual string ErroreFixPropertiesAttributes { get { return "ERROR: FixPropertiesAttributes - Type {0} not managed"; } }

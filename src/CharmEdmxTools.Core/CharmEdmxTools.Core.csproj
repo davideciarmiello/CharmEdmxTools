@@ -46,6 +46,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\CharmEdmxTools.Console\ClassiTest\Class1.cs">
+      <Link>EdmxUtils\Class1.cs</Link>
+    </Compile>
+    <Compile Include="..\CharmEdmxTools.Console\ClassiTest\EdmxManagerNew.cs">
+      <Link>EdmxUtils\EdmxManagerNew.cs</Link>
+    </Compile>
     <Compile Include="..\charmedmxtools.console\edmxconfig\EdmxConfigurator.cs">
       <Link>EdmxConfig\EdmxConfigurator.cs</Link>
     </Compile>

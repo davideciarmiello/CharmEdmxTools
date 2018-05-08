@@ -27,14 +27,7 @@ namespace CharmEdmxTools.Console
         }
         static void InvokeFull(EdmxManagerNew mgr)
         {
-            mgr.FieldsManualOperations();
-            var hasFkWithDifferentTypes = mgr.AssociationContainsDifferentTypes();
-            mgr.FixTabelleECampiEliminati();
-            if (!hasFkWithDifferentTypes)
-                mgr.FixTabelleNonPresentiInConceptual();
-            mgr.FixAssociations();
-            mgr.FixPropertiesAttributes();
-            mgr.FixConceptualModelNames();
+            mgr.ExecAllFixs();
         }
 
         static void Main(string[] args)
@@ -48,10 +41,10 @@ namespace CharmEdmxTools.Console
             //var x = new EdmxContainerNew(xdoc);
             
             var sw = Stopwatch.StartNew();
-            
+
             //var mgr = new EdmxManager(edmxFileName, System.Console.WriteLine, cfg);
-            var mgrnew = new EdmxManagerNew(edmxFileName, System.Console.WriteLine, cfg);
             sw = Stopwatch.StartNew();
+            var mgrnew = new EdmxManagerNew(edmxFileName, System.Console.WriteLine, cfg);
             InvokeFull(mgrnew);
             sw.Stop();
             //13 secondi

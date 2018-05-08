@@ -24,6 +24,10 @@ namespace CharmEdmxTools.ClassiTest
         public StorageOrConceptualModels storageModels;
         public void FillItems()
         {
+            ItemsRemoved = false;
+            var dictCache = new ConcurrentDictionary<XElement, BaseItem>();
+            ItemExtensions.ToBaseItemDocumentCache.TryRemove(_xDoc, out dictCache);
+
             var runtime = _xDoc.Document.Root.Elements().First(x => x.Name.LocalName == "Runtime");
             var runtimeItems = runtime.Elements().ToBaseItems().ToList();
 
@@ -133,6 +137,10 @@ namespace CharmEdmxTools.ClassiTest
             }
 
             FillNavigationProperties(Entities);
+
+            PropertiesList = Entities.SelectMany(x => x.Properties,
+                    (relation, propertyRelation) => new { relation, propertyRelation })
+                .ToDictionary(x => x.propertyRelation, x => x.relation);
         }
 
         private static void FillAssociation(Association container, AssociationRelation assocation,
@@ -227,6 +235,17 @@ namespace CharmEdmxTools.ClassiTest
 
         public List<AssociationRelation> Associations { get; private set; }
         public Dictionary<PropertyRelation, EntityRelation> PropertiesList { get; set; }
+
+        public bool AlreadyRemoved(IRemovable entity)
+        {
+            if (entity.Removed)
+                return true;
+            entity.Removed = true;
+            this.ItemsRemoved = true;
+            return false;
+        }
+
+        public bool ItemsRemoved { get; set; }
     }
 
     public class StorageOrConceptualModels
@@ -296,12 +315,11 @@ namespace CharmEdmxTools.ClassiTest
         public bool Removed { get; set; }
         public void Remove(EdmxContainerNew container)
         {
-            if (Removed)
+            if (container.AlreadyRemoved(this))
                 return;
-            Removed = true;
             new BaseItem[] { Storage, Mapping, StorageEntitySet, ConceptualEntitySet, Conceptual }.RemoveAll();
             NavigationProperties.ForEach(x => x.Remove(container));
-            throw new System.NotImplementedException();
+            //throw new System.NotImplementedException();
             /*var type = storageEntityType;
                 var associationToRemove = storageModels.Association.Where(it => it.DependentRoleTableName == type.Name || it.PrincipalRole == type.Name).ToArray();
                 var associationSetToRemove = storageModels.AssociationSet.Where(it => associationToRemove.Select(p => p.Name).Contains(it.Name)).ToArray();
@@ -331,13 +349,13 @@ namespace CharmEdmxTools.ClassiTest
 
         public void Remove(EdmxContainerNew container)
         {
-            if (Removed)
+            if (container.AlreadyRemoved(this))
                 return;
-            Removed = true;
             new BaseItem[] { Storage, StorageAssociationSet, ConceptualAssociationSet, Conceptual }.RemoveAll();
             if (NavigationProperties != null)
                 NavigationProperties.ForEach(x => x.Remove(container));
             container.Associations.Remove(this);
+
             //Storage.XNode.Document 
             //throw new System.NotImplementedException();
             /* associations.RemoveAll();
@@ -370,29 +388,30 @@ namespace CharmEdmxTools.ClassiTest
         public bool Removed { get; set; }
         public void Remove(EdmxContainerNew container)
         {
-            if (Removed)
+            if (container.AlreadyRemoved(this))
                 return;
-            Removed = true;
             new BaseItem[] { Storage, Conceptual, StorageKey, ConceptualKey, ScalarProperty }.RemoveAll();
+            
+            var entity = container.PropertiesList[this];
 
-            if (container.PropertiesList == null)
-                container.PropertiesList = container.Entities.SelectMany(x => x.Properties,
-                        (relation, propertyRelation) => new { relation, propertyRelation })
-                    .ToDictionary(x => x.propertyRelation, x => x.relation);
+            if (this.Storage != null)
+            {
+                var navsToRemove = container.Associations
+                    .Where(x => x.Storage != null && x.Storage.MatchTableAndField(entity, this.Storage.Name)).ToList();
+                navsToRemove.ForEach(x => x.Remove(container));
+            }
+            if (this.Conceptual != null)
+            {
+                var navsToRemove = container.Associations
+                    .Where(x => x.Conceptual != null && x.Conceptual.MatchTableAndField(entity, this.Conceptual.Name)).ToList();
+                navsToRemove.ForEach(x => x.Remove(container));
+            }
 
 
-                //from ass in container.Associations
-                //from assoc in new []{ass.Conceptual,ass.Storage}.Where(x=>x!= null)
-                //from hh in new[] { assoc.Dependent, assoc.Principal}.Where(x=>x!= null)
-                
-
-            //container.Associations.Where(x=>(x.Conceptual ?? x.Storage).Dependent)
-
-            //var entity = container.PropertiesList[this];
             //entity.NavigationProperties.Where(x=>x.Association.Conceptual.)
 
 
-            throw new System.NotImplementedException();
+            //throw new System.NotImplementedException();
             //todo
             /*
             var propNames = storageEntityType.Property.Select(it => it.Name).ToList();
@@ -439,9 +458,8 @@ namespace CharmEdmxTools.ClassiTest
         public bool Removed { get; set; }
         public void Remove(EdmxContainerNew container)
         {
-            if (Removed)
+            if (container.AlreadyRemoved(this))
                 return;
-            Removed = true;
             new BaseItem[] { NavigationProperty }.RemoveAll();
             Association.Remove(container);
         }

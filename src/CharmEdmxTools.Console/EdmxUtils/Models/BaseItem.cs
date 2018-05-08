@@ -203,7 +203,7 @@ namespace CharmEdmxTools.EdmxUtils.Models
         {
         }
         public string Association { get { return XNode.Attribute("Association").Value; } }
-        
+
         [Obsolete]
         public string AssociationWithoutNamespace
         {
@@ -399,6 +399,14 @@ namespace CharmEdmxTools.EdmxUtils.Models
         public ReferentialConstraintRelation Principal { get; set; }
         public ReferentialConstraintRelation Dependent { get; set; }
 
+        public bool MatchTableAndField(EntityRelation endEntity, string property)
+        {
+            if (Principal != null && Principal.EndEntity == endEntity && Principal.PropertyRef == property)
+                return true;
+            if (Dependent != null && Dependent.EndEntity == endEntity && Dependent.PropertyRef == property)
+                return true;
+            return false;
+        }
 
 
         private string _principalRole;
