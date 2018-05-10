@@ -37,6 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
@@ -46,31 +47,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\CharmEdmxTools.Console\ClassiTest\Class1.cs">
-      <Link>EdmxUtils\Class1.cs</Link>
-    </Compile>
-    <Compile Include="..\CharmEdmxTools.Console\ClassiTest\EdmxManagerNew.cs">
-      <Link>EdmxUtils\EdmxManagerNew.cs</Link>
-    </Compile>
-    <Compile Include="..\charmedmxtools.console\edmxconfig\EdmxConfigurator.cs">
-      <Link>EdmxConfig\EdmxConfigurator.cs</Link>
-    </Compile>
-    <Compile Include="..\charmedmxtools.console\edmxutils\EdmxManager.cs">
-      <Link>EdmxUtils\EdmxManager.cs</Link>
-    </Compile>
-    <Compile Include="..\charmedmxtools.console\edmxutils\ItemExtensions.cs">
-      <Link>EdmxUtils\ItemExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\charmedmxtools.console\edmxutils\Messages.cs">
-      <Link>EdmxUtils\Messages.cs</Link>
-    </Compile>
-    <Compile Include="..\charmedmxtools.console\edmxutils\models\BaseItem.cs">
-      <Link>EdmxUtils\Models\BaseItem.cs</Link>
-    </Compile>
+    <Compile Include="ClassiTest\Class1.cs" />
+    <Compile Include="ClassiTest\EdmxManagerNew.cs" />
+    <Compile Include="EdmxConfig\EdmxConfigurator.cs" />
+    <Compile Include="EdmxUtils\EdmxManager.cs" />
+    <Compile Include="EdmxUtils\ItemExtensions.cs" />
+    <Compile Include="EdmxUtils\Messages.cs" />
+    <Compile Include="EdmxUtils\Models\BaseItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Key.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ExtensionsMethods\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -50,6 +50,8 @@ namespace CharmEdmxTools.ClassiTest
             {
                 FixTabelleECampiEliminati();
                 FixTabelleNonPresentiInConceptual();
+                if (this.edmx.ItemsRemoved)
+                    this.edmx.FillItems();
             }
             FixAssociations();
             FixPropertiesAttributes();
