@@ -113,7 +113,7 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <CommandName>cmdidTestCommand2</CommandName>
-          <ButtonText>EDMX FIX</ButtonText>
+          <ButtonText>Edmx Fix</ButtonText>
         </Strings>
       </Button>
 

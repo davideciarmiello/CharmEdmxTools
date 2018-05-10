@@ -57,6 +57,9 @@
     <Compile Include="..\AppCodeShared\TfsHelper.cs">
       <Link>SharedClass\TfsHelper.cs</Link>
     </Compile>
+    <Compile Include="..\CharmEdmxTools\CharmEdmxTools.cs">
+      <Link>SharedClass\CharmEdmxTools.cs</Link>
+    </Compile>
     <Compile Include="..\CharmEdmxTools\EdmxFixInvoker.cs">
       <Link>SharedClass\EdmxFixInvoker.cs</Link>
     </Compile>
@@ -66,7 +69,6 @@
     <Compile Include="..\CharmEdmxTools\PkgCmdID.cs">
       <Link>SharedClass\PkgCmdID.cs</Link>
     </Compile>
-    <Compile Include="CharmEdmxTools.cs" />
     <Compile Include="CharmEdmxToolsPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -301,6 +301,7 @@
     <Compile Include="..\AppCodeShared\TfsHelper.cs">
       <Link>AppCodeShared\TfsHelper.cs</Link>
     </Compile>
+    <Compile Include="CharmEdmxTools.cs" />
     <Compile Include="EdmxFixInvoker.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="Resources.Designer.cs">

@@ -65,6 +65,8 @@ namespace CharmEdmxTools
 
         public void OnOptimizeMenuToolbarBeforeQueryStatus(object sender, EventArgs e)
         {
+            //System.Diagnostics.Debugger.Break();
+            //System.Diagnostics.Debugger.Launch();
             var menuCommand = sender as MenuCommand;
             if (menuCommand == null)
                 return;
@@ -75,7 +77,7 @@ namespace CharmEdmxTools
             if (_dte2.ActiveDocument == null)
                 menuCommand.Visible = false;
             else
-                menuCommand.Visible = _dte2.ActiveDocument.Name.ToLower().EndsWith(FileExtensions.EntityDataModel);
+                menuCommand.Visible = _dte2.ActiveDocument.Name.ToLowerInvariant().EndsWith(FileExtensions.EntityDataModel);
         }
 
         public void ExecEdmxFix(ProjectItem selectedItem, int commandId)

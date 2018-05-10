@@ -34,6 +34,7 @@ namespace CharmEdmxTools
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(GuidList.guidCharmEdmxToolsPkgString2017)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
+    [ProvideAutoLoad(Microsoft.VisualStudio.VSConstants.UICONTEXT.SolutionExists_string)]
     public sealed class CharmEdmxToolsPackage : Package
     {
         /// <summary>
