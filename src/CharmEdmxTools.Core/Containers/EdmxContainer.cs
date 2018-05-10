@@ -1,19 +1,18 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using CharmEdmxTools.EdmxUtils;
-using CharmEdmxTools.EdmxUtils.Models;
+using CharmEdmxTools.Core.EdmxXmlModels;
+using CharmEdmxTools.Core.ExtensionsMethods;
+using CharmEdmxTools.Core.Interfaces;
 
-namespace CharmEdmxTools.ClassiTest
+namespace CharmEdmxTools.Core.Containers
 {
-    public class EdmxContainerNew
+    public class EdmxContainer
     {
         private readonly XDocument _xDoc;
 
-        public EdmxContainerNew(XDocument xDoc)
+        public EdmxContainer(XDocument xDoc)
         {
             _xDoc = xDoc;
 
@@ -173,11 +172,11 @@ namespace CharmEdmxTools.ClassiTest
             var propMappingPerStorageColumnName = entity.Mapping.Descendants<ScalarProperty>().ToConcurrentDictionary(x => x.ColumnName);
             var storageKeys = entity.Storage.Descendants<Key>().Take(1).SelectMany(it => it.Descendants<PropertyRef>())
                 .ToConcurrentDictionary(x => x.Name);
-            var conceptualProperties = entity.Conceptual.Property.ToConcurrentDictionary(x => x.Name);
+            var conceptualProperties = entity.Conceptual.Properties.ToConcurrentDictionary(x => x.Name);
             var conceptualKeys = entity.Conceptual.Descendants<Key>().Take(1).SelectMany(it => it.Descendants<PropertyRef>())
                 .ToConcurrentDictionary(x => x.Name);
 
-            foreach (var property in entity.Storage.Property)
+            foreach (var property in entity.Storage.Properties)
             {
                 var prop = new PropertyRelation();
                 properties.Add(prop);
@@ -212,7 +211,7 @@ namespace CharmEdmxTools.ClassiTest
             foreach (var entity in entities.Where(x => x.Conceptual != null))
             {
                 var props = entity.NavigationProperties = new List<NavigationPropertyRelation>();
-                foreach (var navigationProperty in entity.Conceptual.NavigationProperty)
+                foreach (var navigationProperty in entity.Conceptual.NavigationProperties)
                 {
                     var prop = new NavigationPropertyRelation();
                     props.Add(prop);
@@ -246,267 +245,5 @@ namespace CharmEdmxTools.ClassiTest
         }
 
         public bool ItemsRemoved { get; set; }
-    }
-
-    public class StorageOrConceptualModels
-    {
-        private readonly BaseItem _models;
-
-        public StorageOrConceptualModels(BaseItem models)
-        {
-            _models = models;
-            Schema = models.XNode.Elements().Single(x => x.Name.LocalName == "Schema");
-            Alias = Schema.GetAttribute("Alias");
-            Namespace = Schema.GetAttribute("Namespace");
-            SchemaElements = Schema.Elements().ToBaseItems().ToList();
-
-            EntityContainerElements = SchemaElements.OfType<EntityContainer>().Single().XNode.Elements()
-                .ToBaseItems().ToList();
-        }
-
-        public string Namespace { get; set; }
-
-        public string Alias { get; set; }
-
-        public List<BaseItem> EntityContainerElements { get; set; }
-
-        public List<BaseItem> SchemaElements { get; set; }
-
-        public XElement Schema { get; set; }
-    }
-
-    public class EntityRelation : IRemovable
-    {
-        private ConcurrentDictionary<string, PropertyRelation> _propertiesPerStorageName;
-        private ConcurrentDictionary<string, PropertyRelation> _propertiesPerConceptualName;
-
-        public override string ToString()
-        {
-            if (Storage != null)
-                return Storage.Name;
-            if (Conceptual != null)
-                return Conceptual.Name;
-            return base.ToString();
-        }
-
-        public EntityType Storage { get; set; }
-        public EntitySetMapping Mapping { get; set; }
-        public EntitySet StorageEntitySet { get; set; }
-        public EntitySet ConceptualEntitySet { get; set; }
-        public EntityType Conceptual { get; set; }
-
-        public List<PropertyRelation> Properties { get; set; }
-
-        public ConcurrentDictionary<string, PropertyRelation> PropertiesPerStorageName
-        {
-            get => _propertiesPerStorageName ?? (_propertiesPerStorageName = Properties.Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name));
-            set => _propertiesPerStorageName = value;
-        }
-        public ConcurrentDictionary<string, PropertyRelation> PropertiesPerConceptualName
-        {
-            get => _propertiesPerConceptualName ?? (_propertiesPerConceptualName = Properties.Where(x => x.Conceptual != null).ToConcurrentDictionary(x => x.Conceptual.Name));
-            set => _propertiesPerConceptualName = value;
-        }
-
-        public List<NavigationPropertyRelation> NavigationProperties { get; set; }
-        public Dictionary<string, int> NavigationPropertiesOneToOnePerPrincipalRole { get; set; }
-        public Dictionary<string, int> NavigationPropertiesOneToManyPerDependentRole { get; set; }
-
-        public bool Removed { get; set; }
-        public void Remove(EdmxContainerNew container)
-        {
-            if (container.AlreadyRemoved(this))
-                return;
-            new BaseItem[] { Storage, Mapping, StorageEntitySet, ConceptualEntitySet, Conceptual }.RemoveAll();
-            NavigationProperties.ForEach(x => x.Remove(container));
-            //throw new System.NotImplementedException();
-            /*var type = storageEntityType;
-                var associationToRemove = storageModels.Association.Where(it => it.DependentRoleTableName == type.Name || it.PrincipalRole == type.Name).ToArray();
-                var associationSetToRemove = storageModels.AssociationSet.Where(it => associationToRemove.Select(p => p.Name).Contains(it.Name)).ToArray();
-                associationToRemove.RemoveAll();
-                associationSetToRemove.RemoveAll();
-                var entitySetToRemove = storageModels.EntitySet.Where(it => it.Name == type.Name).ToArray();
-                entitySetToRemove.RemoveAll();
-                new[] { type }.RemoveAll();*/
-        }
-    }
-
-    public class AssociationRelation : IRemovable
-    {
-        public override string ToString()
-        {
-            if (Storage != null)
-                return Storage.Name;
-            if (Conceptual != null)
-                return Conceptual.Name;
-            return base.ToString();
-        }
-        public Association Storage { get; set; }
-        public AssociationSet StorageAssociationSet { get; set; }
-        public AssociationSet ConceptualAssociationSet { get; set; }
-        public Association Conceptual { get; set; }
-        public List<NavigationPropertyRelation> NavigationProperties { get; set; }
-
-        public void Remove(EdmxContainerNew container)
-        {
-            if (container.AlreadyRemoved(this))
-                return;
-            new BaseItem[] { Storage, StorageAssociationSet, ConceptualAssociationSet, Conceptual }.RemoveAll();
-            if (NavigationProperties != null)
-                NavigationProperties.ForEach(x => x.Remove(container));
-            container.Associations.Remove(this);
-
-            //Storage.XNode.Document 
-            //throw new System.NotImplementedException();
-            /* associations.RemoveAll();
-                        var names = associations.Select(it => it.Name).ToList();
-                        var associationsSet =
-                            storageModels.AssociationSet.Where(it => names.Contains(it.Name)).ToList();
-                        associationsSet.RemoveAll();
-                        
-             var conceptualAssociationSet = conceptualModelsAssociationSet.Where(it => it.Name == conceptualAssociation.Name).ToList();
-                var conceptualNavigationProperty = conceptualModelsNavigationProperty.Where(it => it.Relationship == conceptualAssociationSet[0].Association).ToList();
-                conceptualNavigationProperty.RemoveAll();
-                conceptualAssociationSet.RemoveAll();
-                new[] { conceptualAssociation }.RemoveAll();
-             */
-        }
-
-        public bool Removed { get; set; }
-    }
-
-    public class PropertyRelation : IRemovable
-    {
-        public Property Storage { get; set; }
-        public Property Conceptual { get; set; }
-
-        public PropertyRef StorageKey { get; set; }
-        public PropertyRef ConceptualKey { get; set; }
-        public ScalarProperty ScalarProperty { get; set; }
-
-
-        public bool Removed { get; set; }
-        public void Remove(EdmxContainerNew container)
-        {
-            if (container.AlreadyRemoved(this))
-                return;
-            new BaseItem[] { Storage, Conceptual, StorageKey, ConceptualKey, ScalarProperty }.RemoveAll();
-            
-            var entity = container.PropertiesList[this];
-
-            if (this.Storage != null)
-            {
-                var navsToRemove = container.Associations
-                    .Where(x => x.Storage != null && x.Storage.MatchTableAndField(entity, this.Storage.Name)).ToList();
-                navsToRemove.ForEach(x => x.Remove(container));
-            }
-            if (this.Conceptual != null)
-            {
-                var navsToRemove = container.Associations
-                    .Where(x => x.Conceptual != null && x.Conceptual.MatchTableAndField(entity, this.Conceptual.Name)).ToList();
-                navsToRemove.ForEach(x => x.Remove(container));
-            }
-
-
-            //entity.NavigationProperties.Where(x=>x.Association.Conceptual.)
-
-
-            //throw new System.NotImplementedException();
-            //todo
-            /*
-            var propNames = storageEntityType.Property.Select(it => it.Name).ToList();
-                        var columnNames = entityType.Property.Select(it => it.Name).ToList();
-                        var mappingsToRemove = entitySetMapping.Descendants<ScalarProperty>().Where(it => !propNames.Contains(it.Name) && !columnNames.Contains(it.ColumnName)).ToList();
-                        mappingsToRemove.ForEach(it => logger(string.Format(Messages.Current.EliminazioneMappingsEntityDaMappings, entityType.Name, it.Name, it.ColumnName)));
-                        mappingsToRemove.AsEnumerable().RemoveAll();
-
-            storageProps.RemoveAll();
-            var associations =
-                storageModels.Association
-                    .Where(it => it.DependentRoleTableName.EqualsInvariant(operation.TableName))
-                    .Where(it => it.DependentPropertyRef.EqualsInvariant(operation.FieldName)).ToList();
-            if (associations.Any())
-            {
-                associations.RemoveAll();
-                var names = associations.Select(it => it.Name).ToList();
-                var associationsSet =
-                    storageModels.AssociationSet.Where(it => names.Contains(it.Name)).ToList();
-                associationsSet.RemoveAll();
-            }*/
-
-        }
-    }
-
-
-    public class NavigationPropertyRelation : IRemovable
-    {
-        public NavigationProperty NavigationProperty { get; set; }
-        public AssociationRelation Association { get; set; }
-
-        /// <summary>
-        /// se non è 1 a 1 è una lista (1 a n)
-        /// </summary>
-        public bool NavigationIsOneToOne
-        {
-            get
-            {
-                var is1a1 = Association.Conceptual.Dependent.Role == NavigationProperty.FromRole;
-                return is1a1;
-            }
-        }
-
-        public bool Removed { get; set; }
-        public void Remove(EdmxContainerNew container)
-        {
-            if (container.AlreadyRemoved(this))
-                return;
-            new BaseItem[] { NavigationProperty }.RemoveAll();
-            Association.Remove(container);
-        }
-
-    }
-
-    public class ReferentialConstraintRelation
-    {
-        private readonly BaseItem _principalOrDependent;
-        private readonly End _end;
-        private PropertyRef _propertyRef;
-
-        public ReferentialConstraintRelation(BaseItem principalOrDependent, End end)
-        {
-            _principalOrDependent = principalOrDependent;
-            _propertyRef = principalOrDependent.Descendants<PropertyRef>().First();
-            IsPrincipal = principalOrDependent.XNode.Name.LocalName == "Principal";
-            IsDependent = principalOrDependent.XNode.Name.LocalName == "Dependent";
-            _end = end;
-        }
-
-        public bool IsPrincipal { get; private set; }
-        public bool IsDependent { get; private set; }
-        public string Role
-        {
-            get { return _end.Role; }
-        }
-        public string PropertyRef
-        {
-            get { return _propertyRef.Name; }
-        }
-        public string EndMultiplicity
-        {
-            get { return _end.Multiplicity; }
-            set { _end.Multiplicity = value; }
-        }
-        public string EndModelType
-        {
-            get { return _end.GetAttribute("Type"); }
-        }
-
-        public EntityRelation EndEntity { get; set; }
-    }
-
-    public interface IRemovable
-    {
-        void Remove(EdmxContainerNew container);
-        bool Removed { get; set; }
     }
 }

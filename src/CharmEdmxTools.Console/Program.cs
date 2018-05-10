@@ -5,9 +5,8 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using AppCodeShared;
-using CharmEdmxTools.ClassiTest;
-using CharmEdmxTools.EdmxConfig;
-using CharmEdmxTools.EdmxUtils;
+using CharmEdmxTools.Core.EdmxConfig;
+using CharmEdmxTools.Core.Manager;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.VersionControl.Client;
 
@@ -15,17 +14,17 @@ namespace CharmEdmxTools.Console
 {
     class Program
     {
+        //static void InvokeFull(EdmxManager mgr)
+        //{
+        //    mgr.FieldsManualOperations();
+        //    mgr.FixTabelleECampiEliminati();
+        //    if (!mgr.AssociationContainsDifferentTypes())
+        //        mgr.FixTabelleNonPresentiInConceptual();
+        //    mgr.FixAssociations();
+        //    mgr.FixPropertiesAttributes();
+        //    mgr.FixConceptualModelNames();
+        //}
         static void InvokeFull(EdmxManager mgr)
-        {
-            mgr.FieldsManualOperations();
-            mgr.FixTabelleECampiEliminati();
-            if (!mgr.AssociationContainsDifferentTypes())
-                mgr.FixTabelleNonPresentiInConceptual();
-            mgr.FixAssociations();
-            mgr.FixPropertiesAttributes();
-            mgr.FixConceptualModelNames();
-        }
-        static void InvokeFull(EdmxManagerNew mgr)
         {
             mgr.ExecAllFixs();
         }
@@ -44,7 +43,7 @@ namespace CharmEdmxTools.Console
 
             //var mgr = new EdmxManager(edmxFileName, System.Console.WriteLine, cfg);
             sw = Stopwatch.StartNew();
-            var mgrnew = new EdmxManagerNew(edmxFileName, System.Console.WriteLine, cfg);
+            var mgrnew = new EdmxManager(edmxFileName, System.Console.WriteLine, cfg);
             InvokeFull(mgrnew);
             sw.Stop();
             //13 secondi

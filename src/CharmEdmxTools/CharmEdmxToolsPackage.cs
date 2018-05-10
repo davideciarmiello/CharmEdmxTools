@@ -1,22 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Diagnostics.Contracts;
-using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Runtime.Caching;
 using System.Runtime.InteropServices;
-using System.Web;
-using CharmEdmxTools.EdmxConfig;
-using CharmEdmxTools.EdmxUtils;
-using EnvDTE;
 using EnvDTE80;
-using Microsoft.TeamFoundation.Client;
-using Microsoft.TeamFoundation.VersionControl.Client;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 //using Microsoft.DbContextPackage.Extensions;
 //using Microsoft.DbContextPackage.Handlers;

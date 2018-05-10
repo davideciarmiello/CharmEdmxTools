@@ -4,42 +4,44 @@ using System.Data;
 using System.Linq;
 using System.Windows.Forms;
 using System.Xml.Linq;
-using CharmEdmxTools.EdmxConfig;
-using CharmEdmxTools.EdmxUtils;
-using CharmEdmxTools.EdmxUtils.Models;
+using CharmEdmxTools.Core.Containers;
+using CharmEdmxTools.Core.CoreGlobalization;
+using CharmEdmxTools.Core.EdmxConfig;
+using CharmEdmxTools.Core.EdmxXmlModels;
+using CharmEdmxTools.Core.ExtensionsMethods;
 
-namespace CharmEdmxTools.ClassiTest
+namespace CharmEdmxTools.Core.Manager
 {
-    public class EdmxManagerNew
+    public class EdmxManager
     {
         private readonly string _path;
-        private XDocument xDoc;
-        private EdmxContainerNew edmx;
-        private string xDocLoadStr;
-        Action<string> logger;
-        CharmEdmxConfiguration config;
-        public EdmxManagerNew(string path, Action<string> logger, CharmEdmxConfiguration cfg)
+        private readonly XDocument _xDoc;
+        private readonly EdmxContainer _edmx;
+        private readonly string _xDocLoadStr;
+        readonly Action<string> _logger;
+        readonly CharmEdmxConfiguration _config;
+        public EdmxManager(string path, Action<string> logger, CharmEdmxConfiguration cfg)
         {
             _path = path;
-            xDoc = XDocument.Load(path);
-            xDocLoadStr = xDoc.ToString();
-            this.logger = logger ?? new Action<string>(s => { });
-            config = cfg ?? new CharmEdmxConfiguration();
-            edmx = new EdmxContainerNew(xDoc);
+            _xDoc = XDocument.Load(path);
+            _xDocLoadStr = _xDoc.ToString();
+            _logger = logger ?? new Action<string>(s => { });
+            _config = cfg ?? new CharmEdmxConfiguration();
+            _edmx = new EdmxContainer(_xDoc);
         }
 
         public bool Salva()
         {
             if (!IsChanged())
                 return false;
-            xDoc.Save(_path);
+            _xDoc.Save(_path);
             return true;
         }
 
         public bool IsChanged()
         {
-            var currStr = xDoc.ToString();
-            return (currStr != xDocLoadStr);
+            var currStr = _xDoc.ToString();
+            return (currStr != _xDocLoadStr);
         }
 
         public void ExecAllFixs()
@@ -49,9 +51,10 @@ namespace CharmEdmxTools.ClassiTest
             if (!hasFkWithDifferentTypes)
             {
                 FixTabelleECampiEliminati();
+                FixAssociationEliminate();
                 FixTabelleNonPresentiInConceptual();
-                if (this.edmx.ItemsRemoved)
-                    this.edmx.FillItems();
+                if (_edmx.ItemsRemoved)
+                    _edmx.FillItems();
             }
             FixAssociations();
             FixPropertiesAttributes();
@@ -61,14 +64,14 @@ namespace CharmEdmxTools.ClassiTest
 
         public void FieldsManualOperations()
         {
-            if (config.ManualOperations == null || config.ManualOperations.Count == 0)
+            if (_config.ManualOperations == null || _config.ManualOperations.Count == 0)
                 return;
-            if (config.ManualOperations.All(x => x.TableName == "TABLE_TEST" || x.AssociationName == "FK_TEST"))
+            if (_config.ManualOperations.All(x => x.TableName == "TABLE_TEST" || x.AssociationName == "FK_TEST"))
                 return;
-            var storageModelsEntityType = edmx.Entities.Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name);
-            var storageAssociations = edmx.Associations.Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name);
+            var storageModelsEntityType = _edmx.Entities.Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name);
+            var storageAssociations = _edmx.Associations.Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name);
 
-            foreach (var operation in config.ManualOperations)
+            foreach (var operation in _config.ManualOperations)
             {
                 var op = operation.Type;
                 if (op == ManualOperationType.RemoveField || op == ManualOperationType.SetFieldAttribute)
@@ -81,7 +84,7 @@ namespace CharmEdmxTools.ClassiTest
                         continue;
                     if (op == ManualOperationType.RemoveField)
                     {
-                        storageProp.Remove(edmx);
+                        storageProp.Remove(_edmx);
                     }
                     else if (op == ManualOperationType.SetFieldAttribute)
                     {
@@ -100,7 +103,7 @@ namespace CharmEdmxTools.ClassiTest
                     var association = storageAssociations.GetOrNull(operation.AssociationName);
                     if (association == null)
                         continue;
-                    association.Remove(edmx);
+                    association.Remove(_edmx);
                 }
             }
 
@@ -109,13 +112,13 @@ namespace CharmEdmxTools.ClassiTest
 
         public void FixTabelleECampiEliminati()
         {
-            foreach (var entityType in edmx.Entities.ToList())
+            foreach (var entityType in _edmx.Entities.ToList())
             {
                 var storageEntityType = entityType.Storage;
                 if (storageEntityType == null) // è stata eliminata dal db, ma c'è ancora sull'edmx
                 {
-                    logger(string.Format(Messages.Current.EliminazioneEntityDaConceptualModels, entityType.Conceptual.Name));
-                    entityType.Remove(edmx);
+                    _logger(string.Format(Messages.Current.EliminazioneEntityDaConceptualModels, entityType.Conceptual.Name));
+                    entityType.Remove(_edmx);
                     //DeleteTableFromConceptualModels(conceptualModels, entityType);
                 }
                 else
@@ -124,41 +127,39 @@ namespace CharmEdmxTools.ClassiTest
                     {
                         if (prop.Storage == null)
                         {
-                            logger(string.Format(Messages.Current.EliminazionePropertyDaConceptualModels, entityType.Conceptual.Name, prop.Conceptual.Name));
-                            prop.Remove(edmx);
+                            _logger(string.Format(Messages.Current.EliminazionePropertyDaConceptualModels, entityType.Conceptual.Name, prop.Conceptual.Name));
+                            prop.Remove(_edmx);
                         }
                         else if (prop.Conceptual == null)
                         {
                             if (prop.StorageKey == null)
                             {
-                                logger(string.Format(Messages.Current.ErroreImpossibileEliminarePropertyDaStorage, entityType.Storage.Name, prop.Storage.Name));
+                                _logger(string.Format(Messages.Current.ErroreImpossibileEliminarePropertyDaStorage, entityType.Storage.Name, prop.Storage.Name));
                             }
                             else
                             {
-                                logger(string.Format(Messages.Current.EliminazionePropertyDaStorageModels, entityType.Storage.Name, prop.Storage.Name));
-                                prop.Remove(edmx);
+                                _logger(string.Format(Messages.Current.EliminazionePropertyDaStorageModels, entityType.Storage.Name, prop.Storage.Name));
+                                prop.Remove(_edmx);
                             }
                         }
                     }
 
                 }
             }
-
-            FixAssociationEliminate();
         }
 
 
         private void FixAssociationEliminate()
         {
-            foreach (var association in edmx.Associations.ToList())
+            foreach (var association in _edmx.Associations.ToList())
             {
                 var storageAssociation = association.Storage;
                 if (storageAssociation != null)
                     continue;
                 var conceptualAssociation = association.Conceptual;
                 // è stata eliminata dal db, ma c'è ancora sull'edmx
-                logger(string.Format(Messages.Current.EliminazioneAssociationDaConceptualModels, conceptualAssociation.Name, conceptualAssociation.PrincipalRole, conceptualAssociation.PrincipalPropertyRef, conceptualAssociation.DependentRoleTableName, conceptualAssociation.DependentPropertyRef));
-                association.Remove(edmx);
+                _logger(string.Format(Messages.Current.EliminazioneAssociationDaConceptualModels, conceptualAssociation.Name, conceptualAssociation.Principal.Role, conceptualAssociation.Principal.PropertyRef, conceptualAssociation.Dependent.Role, conceptualAssociation.Dependent.PropertyRef));
+                association.Remove(_edmx);
             }
         }
 
@@ -175,14 +176,16 @@ namespace CharmEdmxTools.ClassiTest
             return true;
         }
 
+        private static string FnGetMapping(Property p, params string[] attributi)
+        {
+            var lst = (from key in attributi where !string.IsNullOrEmpty(p.GetAttribute(key)) select string.Concat(key, "=", p.GetAttribute(key))).ToList();
+            return string.Join(", ", lst);
+        }
+
         public bool AssociationContainsDifferentTypes()
         {
-            var storageModelsAssociations = edmx.Associations.ToList();
-            Func<Property, string> fnGetMapping = p =>
-            {
-                var lst = (from key in new[] { "Type", "Precision", "Scale" } where !string.IsNullOrEmpty(p.GetAttribute(key)) select string.Concat(key, "=", p.GetAttribute(key))).ToList();
-                return string.Join(", ", lst);
-            };
+            var storageModelsAssociations = _edmx.Associations.ToList();
+
             var haveErrors = false;
             foreach (var storageModelsAssociation in storageModelsAssociations)
             {
@@ -197,20 +200,21 @@ namespace CharmEdmxTools.ClassiTest
                 {
                     continue;
                 }
-                if (HasEqualsAttribute(principalField.Storage, dependentField.Storage, new[] { "Type", "Precision", "Scale" }))
+                var attributi = new string[] {"Type", "Precision", "Scale"};
+                if (HasEqualsAttribute(principalField.Storage, dependentField.Storage, attributi))
                     continue;
                 haveErrors = true;
                 var msg = string.Format("WARNING FK: {0}.{1} ({2}) non corrisponde a {3}.{4} ({5})",
-                    association.Principal.EndEntity.Storage.Name, association.Principal.PropertyRef, fnGetMapping(principalField.Storage),
-                    association.Dependent.EndEntity.Storage.Name, association.Dependent.PropertyRef, fnGetMapping(dependentField.Storage));
-                logger(msg);
+                    association.Principal.EndEntity.Storage.Name, association.Principal.PropertyRef, FnGetMapping(principalField.Storage, attributi),
+                    association.Dependent.EndEntity.Storage.Name, association.Dependent.PropertyRef, FnGetMapping(dependentField.Storage, attributi));
+                _logger(msg);
             }
             return haveErrors;
         }
 
         public void FixTabelleNonPresentiInConceptual()
         {
-            foreach (var entity in edmx.Entities.Where(x => x.Storage != null))
+            foreach (var entity in _edmx.Entities.Where(x => x.Storage != null))
             {
                 var storageEntityType = entity.Storage;
                 var conceptualEntityType = entity.Conceptual;
@@ -220,14 +224,14 @@ namespace CharmEdmxTools.ClassiTest
                 var res = MessageBox.Show(msg, "Avviso", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
                 if (res != DialogResult.Yes)
                     continue;
-                entity.Remove(edmx);
+                entity.Remove(_edmx);
             }
         }
 
 
         public void FixAssociations()
         {
-            foreach (var entity in edmx.Associations.Where(x => x.Conceptual != null))
+            foreach (var entity in _edmx.Associations.Where(x => x.Conceptual != null))
             {
                 var conceptualModelsAssociation = entity.Conceptual;
                 var storageModelsAssociation = entity.Storage;
@@ -242,7 +246,7 @@ namespace CharmEdmxTools.ClassiTest
                     var conceptualModelsEnd = conceptualModelsEndKeyValue.Value;
                     if (storageModelsEnd.EndMultiplicity != conceptualModelsEnd.EndMultiplicity)
                     {
-                        logger(string.Format(Messages.Current.CambioValoreMultiplicityFk, conceptualModelsAssociation.Name, conceptualModelsEnd.Role, conceptualModelsEnd.EndMultiplicity, storageModelsEnd.EndMultiplicity));
+                        _logger(string.Format(Messages.Current.CambioValoreMultiplicityFk, conceptualModelsAssociation.Name, conceptualModelsEnd.Role, conceptualModelsEnd.EndMultiplicity, storageModelsEnd.EndMultiplicity));
                         conceptualModelsEnd.EndMultiplicity = storageModelsEnd.EndMultiplicity;
                     }
                 }
@@ -252,26 +256,24 @@ namespace CharmEdmxTools.ClassiTest
 
         public void FixPropertiesAttributes()
         {
-            var provider = edmx.storageModels.Schema.Attribute("Provider");
+            var provider = _edmx.storageModels.Schema.Attribute("Provider");
             if (provider == null || string.IsNullOrEmpty(provider.Value))
                 return;
 
-            //Action<Property, Property> fixPropertyAttributes;
-
-            var dynamicProvider = config.EdmMappingConfigurations.FirstOrDefault(it => provider.Value.StartsWith(it.ProviderName));
+            var dynamicProvider = _config.EdmMappingConfigurations.FirstOrDefault(it => provider.Value.StartsWith(it.ProviderName));
             if (dynamicProvider == null)
                 return;
             var dt = new Lazy<DataTable>(() => new DataTable());
-            foreach (var conceptualEntityType in edmx.Entities.Where(x => x.Storage != null && x.Conceptual != null))
+            foreach (var conceptualEntityType in _edmx.Entities.Where(x => x.Storage != null && x.Conceptual != null))
             {
                 foreach (var property in conceptualEntityType.Properties.Where(x => x.Storage != null && x.Conceptual != null))
                 {
                     var conceptualProperty = property.Conceptual;
                     var storageProperty = property.Storage;
                     var oldHtml = conceptualProperty.XNode.ToString();
-                    var res = EdmxManager.FixPropertyAttributesDynamic(storageProperty, conceptualProperty, dynamicProvider, dt.Value);
+                    var res = ManagerInternalUtils.FixPropertyAttributesDynamic(storageProperty, conceptualProperty, dynamicProvider, dt.Value);
                     if (oldHtml != conceptualProperty.XNode.ToString())
-                        logger(string.Format(Messages.Current.EseguitoFixPropertiesAttributes, conceptualEntityType.Conceptual.Name, conceptualProperty.Name, string.Join("; ", res)));
+                        _logger(string.Format(Messages.Current.EseguitoFixPropertiesAttributes, conceptualEntityType.Conceptual.Name, conceptualProperty.Name, string.Join("; ", res)));
                 }
             }
         }
@@ -279,10 +281,10 @@ namespace CharmEdmxTools.ClassiTest
 
         public void FixConceptualModelNames()
         {
-            if (!config.NamingNavigationProperty.Enabled)
+            if (!_config.NamingNavigationProperty.Enabled)
                 return;
             //var conceptualModels = edmx.ConceptualModels;
-            foreach (var entityType in this.edmx.Entities.Where(x => x.Conceptual != null))
+            foreach (var entityType in _edmx.Entities.Where(x => x.Conceptual != null))
             {
                 var navProps = entityType.NavigationProperties
                     .OrderBy(it => it.NavigationIsOneToOne ? 0 : 1) //processo prima i oneToOne
@@ -298,7 +300,7 @@ namespace CharmEdmxTools.ClassiTest
                     allNavPropInEntity.Add(newName);
                     if (!string.IsNullOrEmpty(newName) && navProp.NavigationProperty.Name != newName)
                     {
-                        logger(string.Format(Messages.Current.RinominoNavigationProperty, entityType.Conceptual.Name, navProp.NavigationProperty.Name, newName));
+                        _logger(string.Format(Messages.Current.RinominoNavigationProperty, entityType.Conceptual.Name, navProp.NavigationProperty.Name, newName));
                         navProp.NavigationProperty.Name = newName;
                     }
                 }
@@ -310,15 +312,15 @@ namespace CharmEdmxTools.ClassiTest
         public virtual string GetFixedNameForNavigationModel(NavigationPropertyRelation navProp, EntityRelation entity, List<string> allNavPropInEntity)
         {
             var numeroMappings = entity.NavigationPropertiesOneToOnePerPrincipalRole.GetOrNull(navProp.Association.Conceptual.Principal.EndEntity.Conceptual.Name);
-            string newName = "";
+            string newName;
             if (numeroMappings > 1)
-                newName = GetFixedNameForNavigationFromConfig(navProp.Association, config.NamingNavigationProperty.ModelMany.Pattern);
+                newName = GetFixedNameForNavigationFromConfig(navProp.Association, _config.NamingNavigationProperty.ModelMany.Pattern);
             else
             {
                 if (navProp.Association.Conceptual.Principal.EndEntity.Conceptual.Name == entity.Conceptual.Name)
-                    newName = GetFixedNameForNavigationFromConfig(navProp.Association, config.NamingNavigationProperty.ModelOneParent.Pattern);
+                    newName = GetFixedNameForNavigationFromConfig(navProp.Association, _config.NamingNavigationProperty.ModelOneParent.Pattern);
                 else
-                    newName = GetFixedNameForNavigationFromConfig(navProp.Association, config.NamingNavigationProperty.ModelOne.Pattern);
+                    newName = GetFixedNameForNavigationFromConfig(navProp.Association, _config.NamingNavigationProperty.ModelOne.Pattern);
             }
             if (allNavPropInEntity.Contains(newName))
             {
@@ -339,13 +341,13 @@ namespace CharmEdmxTools.ClassiTest
             var numeroDiListe = entity.NavigationPropertiesOneToManyPerDependentRole.GetOrNull(navProp.Association.Conceptual.Dependent.EndEntity.Conceptual.Name);
             string newName = "";
             if (numeroDiListe > 1)
-                newName = GetFixedNameForNavigationFromConfig(navProp.Association, config.NamingNavigationProperty.ListMany.Pattern);
+                newName = GetFixedNameForNavigationFromConfig(navProp.Association, _config.NamingNavigationProperty.ListMany.Pattern);
             else
             {
                 if (navProp.Association.Conceptual.Dependent.EndEntity.Conceptual.Name == entity.Conceptual.Name)
-                    newName = GetFixedNameForNavigationFromConfig(navProp.Association, config.NamingNavigationProperty.ListOneChilds.Pattern);
+                    newName = GetFixedNameForNavigationFromConfig(navProp.Association, _config.NamingNavigationProperty.ListOneChilds.Pattern);
                 else
-                    newName = GetFixedNameForNavigationFromConfig(navProp.Association, config.NamingNavigationProperty.ListOne.Pattern);
+                    newName = GetFixedNameForNavigationFromConfig(navProp.Association, _config.NamingNavigationProperty.ListOne.Pattern);
             }
             if (allNavPropInEntity.Contains(newName))
             {
@@ -372,14 +374,14 @@ namespace CharmEdmxTools.ClassiTest
 
         public void ClearEdmxPreservingKeyFields()
         {
-            logger(Messages.Current.AvvioClearEdmxPreservingKeyFields);
-            foreach (var entityType in edmx.Entities)
+            _logger(Messages.Current.AvvioClearEdmxPreservingKeyFields);
+            foreach (var entityType in _edmx.Entities)
             {
                 foreach (var entityTypeProperty in entityType.Properties)
                 {
                     if (entityTypeProperty.StorageKey != null)
                         continue;
-                    entityTypeProperty.Remove(edmx);
+                    entityTypeProperty.Remove(_edmx);
                 }
             }
         }

@@ -9,9 +9,10 @@ using System.Runtime.Caching;
 using System.Text;
 using System.Threading.Tasks;
 using AppCodeShared;
-using CharmEdmxTools.ClassiTest;
-using CharmEdmxTools.EdmxConfig;
-using CharmEdmxTools.EdmxUtils;
+using CharmEdmxTools.Core.CoreGlobalization;
+using CharmEdmxTools.Core.EdmxConfig;
+using CharmEdmxTools.Core.ExtensionsMethods;
+using CharmEdmxTools.Core.Manager;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.TeamFoundation.Client;
@@ -108,7 +109,7 @@ namespace CharmEdmxTools
                 }
 
                 sw.Restart();
-                var mgr = new EdmxManagerNew(edmxPath, logger, config);
+                var mgr = new EdmxManager(edmxPath, logger, config);
 
                 if (commandId == PkgCmdIDList.cmdidEdmxExecAllFixs)
                 {

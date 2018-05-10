@@ -2,16 +2,19 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using CharmEdmxTools.EdmxConfig;
-using CharmEdmxTools.EdmxUtils.Models;
+using CharmEdmxTools.Core.EdmxConfig;
+using CharmEdmxTools.Core.EdmxXmlModels;
 
-namespace CharmEdmxTools.EdmxUtils
+namespace CharmEdmxTools.Core.ExtensionsMethods
 {
     public static class ItemExtensions
     {
+
+        public static IEnumerable<T> NotDeleted<T>(this IEnumerable<T> source) where T : BaseItem
+        {
+            return source.Where(x => x.IsDeleted == false);
+        }
 
         public static string GetAttribute(this XElement xNode, string key)
         {
@@ -87,8 +90,8 @@ namespace CharmEdmxTools.EdmxUtils
         {
             return lst.Select(ToBaseItem);
         }
-        private static ConcurrentDictionary<XElement, BaseItem> ToBaseItemCache = new ConcurrentDictionary<XElement, BaseItem>();
-        public static ConcurrentDictionary<XDocument, ConcurrentDictionary<XElement, BaseItem>> ToBaseItemDocumentCache = new ConcurrentDictionary<XDocument, ConcurrentDictionary<XElement, BaseItem>>();
+        private static readonly ConcurrentDictionary<XElement, BaseItem> ToBaseItemCache = new ConcurrentDictionary<XElement, BaseItem>();
+        public static readonly ConcurrentDictionary<XDocument, ConcurrentDictionary<XElement, BaseItem>> ToBaseItemDocumentCache = new ConcurrentDictionary<XDocument, ConcurrentDictionary<XElement, BaseItem>>();
         public static BaseItem ToBaseItem(this XElement nodeElement)
         {
             var cache = ToBaseItemCache;
@@ -99,8 +102,8 @@ namespace CharmEdmxTools.EdmxUtils
             {
                 switch (node.Name.LocalName)
                 {
-                    case "StorageModels": return new StorageModels(node);
-                    case "ConceptualModels": return new ConceptualModels(node);
+                    //case "StorageModels": return new StorageModels(node);
+                    //case "ConceptualModels": return new ConceptualModels(node);
                     case "Mappings": return new Mappings(node);
                     case "EntityContainer": return new EntityContainer(node);
                     case "EntitySet": return new EntitySet(node);

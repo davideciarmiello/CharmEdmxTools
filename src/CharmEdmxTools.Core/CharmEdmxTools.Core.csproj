@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -47,21 +48,51 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClassiTest\Class1.cs" />
-    <Compile Include="ClassiTest\EdmxManagerNew.cs" />
-    <Compile Include="EdmxConfig\EdmxConfigurator.cs" />
-    <Compile Include="EdmxUtils\EdmxManager.cs" />
-    <Compile Include="EdmxUtils\ItemExtensions.cs" />
-    <Compile Include="EdmxUtils\Messages.cs" />
-    <Compile Include="EdmxUtils\Models\BaseItem.cs" />
+    <Compile Include="Containers\AssociationRelation.cs" />
+    <Compile Include="Containers\EdmxContainer.cs" />
+    <Compile Include="Containers\EntityRelation.cs" />
+    <Compile Include="CoreGlobalization\IMessages.cs" />
+    <Compile Include="CoreGlobalization\MessagesEn.cs" />
+    <Compile Include="CoreGlobalization\MessagesIt.cs" />
+    <Compile Include="EdmxConfig\AttributeTrasformation.cs" />
+    <Compile Include="EdmxConfig\edmMapping.cs" />
+    <Compile Include="EdmxConfig\edmMappingConfiguration.cs" />
+    <Compile Include="EdmxConfig\ManualOperation.cs" />
+    <Compile Include="EdmxConfig\ManualOperationType.cs" />
+    <Compile Include="EdmxConfig\NamingNavigationProperty.cs" />
+    <Compile Include="EdmxConfig\NamingNavigationPropertyItem.cs" />
+    <Compile Include="EdmxConfig\SccPocoFixer.cs" />
+    <Compile Include="EdmxXmlModels\Association.cs" />
+    <Compile Include="EdmxXmlModels\AssociationSet.cs" />
+    <Compile Include="EdmxXmlModels\End.cs" />
+    <Compile Include="EdmxXmlModels\EntityContainer.cs" />
+    <Compile Include="EdmxXmlModels\EntitySet.cs" />
+    <Compile Include="EdmxXmlModels\EntitySetMapping.cs" />
+    <Compile Include="EdmxXmlModels\EntityType.cs" />
+    <Compile Include="EdmxXmlModels\EntityTypeMapping.cs" />
+    <Compile Include="EdmxXmlModels\Key.cs" />
+    <Compile Include="EdmxXmlModels\Mappings.cs" />
+    <Compile Include="EdmxXmlModels\NavigationProperty.cs" />
+    <Compile Include="EdmxXmlModels\Property.cs" />
+    <Compile Include="EdmxXmlModels\PropertyRef.cs" />
+    <Compile Include="EdmxXmlModels\ScalarProperty.cs" />
+    <Compile Include="Interfaces\IRemovable.cs" />
+    <Compile Include="Containers\NavigationPropertyRelation.cs" />
+    <Compile Include="Containers\PropertyRelation.cs" />
+    <Compile Include="Containers\ReferentialConstraintRelation.cs" />
+    <Compile Include="Containers\StorageOrConceptualModels.cs" />
+    <Compile Include="Manager\EdmxManager.cs" />
+    <Compile Include="EdmxConfig\CharmEdmxConfiguration.cs" />
+    <Compile Include="ExtensionsMethods\ItemExtensions.cs" />
+    <Compile Include="CoreGlobalization\Messages.cs" />
+    <Compile Include="EdmxXmlModels\BaseItem.cs" />
+    <Compile Include="Manager\ManagerInternalUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Key.snk" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="ExtensionsMethods\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

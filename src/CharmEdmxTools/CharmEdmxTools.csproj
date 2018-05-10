@@ -301,21 +301,6 @@
     <Compile Include="..\AppCodeShared\TfsHelper.cs">
       <Link>AppCodeShared\TfsHelper.cs</Link>
     </Compile>
-    <Compile Include="..\CharmEdmxTools.Console\EdmxConfig\EdmxConfigurator.cs">
-      <Link>EdmxConfig\EdmxConfigurator.cs</Link>
-    </Compile>
-    <Compile Include="..\CharmEdmxTools.Console\EdmxUtils\EdmxManager.cs">
-      <Link>EdmxUtils\EdmxManager.cs</Link>
-    </Compile>
-    <Compile Include="..\CharmEdmxTools.Console\EdmxUtils\ItemExtensions.cs">
-      <Link>EdmxUtils\ItemExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\CharmEdmxTools.Console\EdmxUtils\Messages.cs">
-      <Link>EdmxUtils\Messages.cs</Link>
-    </Compile>
-    <Compile Include="..\CharmEdmxTools.Console\EdmxUtils\Models\BaseItem.cs">
-      <Link>EdmxUtils\Models\BaseItem.cs</Link>
-    </Compile>
     <Compile Include="EdmxFixInvoker.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="Resources.Designer.cs">
@@ -359,6 +344,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Package.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CharmEdmxTools.Core\CharmEdmxTools.Core.csproj">
+      <Project>{98e027fd-be99-4274-a6ad-84b29c7b8209}</Project>
+      <Name>CharmEdmxTools.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>
