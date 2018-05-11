@@ -7,8 +7,11 @@ namespace CharmEdmxTools
     {
         public const uint cmdidEdmxExecAllFixs = 0x100;
         public const uint cmdidEdmxClearAllProperties = 0x300;
-		
-		
+
+        public const uint cmdidEdmxToolbarFixUpper = 0x0025;
+        public const uint cmdidEdmxToolbarFix = 0x0026;
+
+
         //public const uint cmdidEdmxOracleFix =        0x100;
         public const uint cmdidViewEntityDataModel = 0x100;
         public const uint cmdidViewEntityDataModelXml = 0x200;

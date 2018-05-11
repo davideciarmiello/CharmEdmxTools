@@ -107,12 +107,21 @@
     <Buttons>
 
 
-      <Button guid="guidDbContextPackageCmdSet" id="cmdidTestCommand2" priority="0x700" type="Button">
-        <!--<Parent guid="guidDbContextPackageCmdSet" id="MyMenuGroup" />-->
+      <Button guid="guidDbContextPackageCmdSet" id="cmdidEdmxToolbarFixUpper" priority="0x700" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_MM_TOOLSADDINS" />
         <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <CommandName>cmdidTestCommand2</CommandName>
+          <CommandName>cmdidEdmxToolbarFixUpper</CommandName>
+          <ButtonText>Edmx Fix</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidDbContextPackageCmdSet" id="cmdidEdmxToolbarFix" priority="0x700" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_MM_TOOLSADDINS" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <CommandName>cmdidEdmxToolbarFix</CommandName>
           <ButtonText>Edmx Fix</ButtonText>
         </Strings>
       </Button>
@@ -243,7 +252,8 @@
       <IDSymbol name="MyMenuGroup" value="0x0022"/>
       <IDSymbol name="SubMenuGroup" value="0x0023"/>
       <IDSymbol name="MRUListGroup" value="0x0024"/>
-      <IDSymbol name="cmdidTestCommand2" value="0x0025"/>
+      <IDSymbol name="cmdidEdmxToolbarFixUpper" value="0x0025"/>
+      <IDSymbol name="cmdidEdmxToolbarFix" value="0x0026"/>
 
       <!-- Project Item Menu Entries -->
       <!--<IDSymbol name="cmdidViewEntityDataModel" value="0x0100" />

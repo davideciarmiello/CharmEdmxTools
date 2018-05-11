@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel.Design;
 using System.Globalization;
+using System.Linq;
+using System.Windows.Forms;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
@@ -59,6 +61,7 @@ namespace CharmEdmxTools
             var mcs = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (mcs != null)
             {
+                var version = Convert.ToInt32(_invoker._dte2.Version.Split('.').First());
                 var menuCommandId1 = new CommandID(GuidList.guidCharmEdmxToolsCmdSet, (int)PkgCmdIDList.cmdidEdmxExecAllFixs);
                 var menuItem1 = new OleMenuCommand(EdmxContextMenuItemCallback, null, _invoker.OnOptimizeContextBeforeQueryStatus, menuCommandId1) { Visible = false };
                 mcs.AddCommand(menuItem1);
@@ -67,9 +70,11 @@ namespace CharmEdmxTools
                 var menuItem2 = new OleMenuCommand(EdmxContextMenuItemCallback, null, _invoker.OnOptimizeContextBeforeQueryStatus, menuCommandId2) { Visible = false };
                 mcs.AddCommand(menuItem2);
 
-                var menuCommandId3 = new CommandID(GuidList.guidCharmEdmxToolsCmdSet, (int)0x0025);
+                var menuCommandId3 = new CommandID(GuidList.guidCharmEdmxToolsCmdSet, version < 14 ? (int)PkgCmdIDList.cmdidEdmxToolbarFixUpper : (int)PkgCmdIDList.cmdidEdmxToolbarFix);
                 var menuItem3 = new OleMenuCommand(EdmxMenuToolbarItemCallback, null, _invoker.OnOptimizeMenuToolbarBeforeQueryStatus, menuCommandId3) { Visible = false };
                 mcs.AddCommand(menuItem3);
+
+                //MessageBox.Show(_invoker._dte2.Version + menuItem3.Text);
             }
         }
 
@@ -94,7 +99,7 @@ namespace CharmEdmxTools
                 return;
             var selectedItem = _invoker._dte2.ActiveDocument.ProjectItem;
             var id = menuCommand.CommandID.ID;
-            if (id == 0x0025)
+            if (id == PkgCmdIDList.cmdidEdmxToolbarFix || id == PkgCmdIDList.cmdidEdmxToolbarFixUpper)
                 id = (int)PkgCmdIDList.cmdidEdmxExecAllFixs;
             _invoker.ExecEdmxFix(selectedItem, id);
         }

@@ -4,11 +4,13 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
+using Task = System.Threading.Tasks.Task;
 
 namespace CharmEdmxTools
 {
@@ -35,7 +37,7 @@ namespace CharmEdmxTools
     [Guid(GuidList.guidCharmEdmxToolsPkgString2017)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     [ProvideAutoLoad(Microsoft.VisualStudio.VSConstants.UICONTEXT.SolutionExists_string)]
-    public sealed class CharmEdmxToolsPackage : Package
+    public sealed class CharmEdmxToolsPackage : AsyncPackage
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="CharmEdmxTools"/> class.
@@ -49,15 +51,11 @@ namespace CharmEdmxTools
         }
 
         #region Package Members
-
-        /// <summary>
-        /// Initialization of the package; this method is called right after the package is sited, so this is the place
-        /// where you can put all the initialization code that rely on services provided by VisualStudio.
-        /// </summary>
-        protected override void Initialize()
+        
+        protected override Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             CharmEdmxTools.Initialize(this);
-            base.Initialize();
+            return base.InitializeAsync(cancellationToken, progress);
         }
 
         #endregion
