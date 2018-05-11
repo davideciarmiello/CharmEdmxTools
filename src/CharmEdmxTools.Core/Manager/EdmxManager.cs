@@ -200,7 +200,7 @@ namespace CharmEdmxTools.Core.Manager
                 {
                     continue;
                 }
-                var attributi = new string[] {"Type", "Precision", "Scale"};
+                var attributi = new string[] { "Type", "Precision", "Scale" };
                 if (HasEqualsAttribute(principalField.Storage, dependentField.Storage, attributi))
                     continue;
                 haveErrors = true;
@@ -281,6 +281,13 @@ namespace CharmEdmxTools.Core.Manager
 
         public void FixConceptualModelNames()
         {
+            //foreach (var entityType in _edmx.Entities)
+            //{
+            //    if (entityType.Mapping != null && entityType.ConceptualEntitySet != null &&
+            //        entityType.Mapping.ConceptualTypeName != entityType.ConceptualEntitySet.EntityType)
+            //        entityType.ConceptualEntitySet.EntityType = entityType.Mapping.ConceptualTypeName;
+            //}
+
             if (!_config.NamingNavigationProperty.Enabled)
                 return;
             //var conceptualModels = edmx.ConceptualModels;

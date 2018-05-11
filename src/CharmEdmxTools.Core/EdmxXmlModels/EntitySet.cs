@@ -10,7 +10,15 @@ namespace CharmEdmxTools.Core.EdmxXmlModels
         {
         }
 
-        public string EntityType { get { return XNode.GetAttribute("EntityType"); } }
+        public string EntityType
+        {
+            get { return XNode.GetAttribute("EntityType"); }
+            set
+            {
+                var attr = XNode.Attribute("EntityType");
+                if (attr != null) attr.Value = value;
+            }
+        }
 
     }
 }

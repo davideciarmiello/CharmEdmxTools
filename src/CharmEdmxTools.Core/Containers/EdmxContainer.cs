@@ -57,10 +57,10 @@ namespace CharmEdmxTools.Core.Containers
                     it.Mapping = entitySetMappingPerName.GetOrNull(storageEntityType.Name);
                     if (it.Mapping == null)
                         continue;
-                    it.ConceptualEntitySet = conceptualEntityContainerItemsEntitySetPerEntityTypeWithNs.GetOrNull(it.Mapping.ConceptualTypeName).Add(itemsManaged);
+                    it.ConceptualEntitySet = conceptualEntityContainerItemsEntitySetPerEntityTypeWithNs.GetOrNullMultiNs(it.Mapping.ConceptualTypeName, conceptualModels.Namespace, conceptualModels.Alias).Add(itemsManaged);
                     if (it.ConceptualEntitySet == null)
                         continue;
-                    it.Conceptual = conceptualEntityTypesWithNs.GetOrNull(it.ConceptualEntitySet.EntityType).Add(itemsManaged);
+                    it.Conceptual = conceptualEntityTypesWithNs.GetOrNullMultiNs(it.ConceptualEntitySet.EntityType, conceptualModels.Namespace, conceptualModels.Alias).Add(itemsManaged);
                 }
 
                 var conceptualOrfani = conceptualEntityTypesWithNs.Values.Except(itemsManaged).Cast<EntityType>().ToList();
@@ -75,8 +75,8 @@ namespace CharmEdmxTools.Core.Containers
                         entities.Add(it);
                         it.Conceptual = conceptualEntityType;
                         it.ConceptualEntitySet =
-                            conceptualEntityContainerItemsEntitySetPerEntityTypeWithNs[conceptualModels.Namespace + "." + conceptualEntityType.Name];
-                        it.Mapping = entitySetMappingPerConceptualTypeName[it.ConceptualEntitySet.EntityType];
+                            conceptualEntityContainerItemsEntitySetPerEntityTypeWithNs.GetMultiNs(conceptualEntityType.Name, conceptualModels.Namespace, conceptualModels.Alias);
+                        it.Mapping = entitySetMappingPerConceptualTypeName.GetMultiNs(it.ConceptualEntitySet.EntityType, conceptualModels.Namespace, conceptualModels.Alias);
                     }
                 }
             }

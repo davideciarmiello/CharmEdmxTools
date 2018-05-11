@@ -35,6 +35,8 @@ namespace CharmEdmxTools.Console
                 @"C:\tfs\GRIN\dev-rin1\src\Gse.Grin.Platform.Solution\Gse.Grin.Platform.Solution.sln.CharmEdmxTools";
             var edmxFileName = cfgFileName.Replace("Gse.Grin.Platform.Solution.sln.CharmEdmxTools",
                 @"Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx");
+            edmxFileName = cfgFileName.Replace("Gse.Grin.Platform.Solution.sln.CharmEdmxTools",
+                @"Gse.Grin.ReadModel.Anagrafica\GrinAnagraficaReadEntities.edmx");
             var cfg = CharmEdmxConfiguration.Load(cfgFileName);
             //var xdoc = XDocument.Load(edmxFileName);
             //var x = new EdmxContainerNew(xdoc);
@@ -48,7 +50,7 @@ namespace CharmEdmxTools.Console
             sw.Stop();
             //13 secondi
             System.Console.WriteLine(sw.Elapsed);
-
+            mgrnew.Salva();
             //TestTfs();
             return;
             //var newCfg = new CharmEdmxConfiguration();
