@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
+using CharmEdmxTools.Core.Containers;
 using CharmEdmxTools.Core.EdmxConfig;
 using CharmEdmxTools.Core.EdmxXmlModels;
 
@@ -10,6 +11,14 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
 {
     public static class ItemExtensions
     {
+        public static string RemoveNs(this string str, StorageOrConceptualModels owner)
+        {
+            if (str.StartsWith(owner.Namespace) && str[owner.Namespace.Length] == '.')
+                return str.Substring(owner.Namespace.Length + 1);
+            if (str.StartsWith(owner.Alias) && str[owner.Alias.Length] == '.')
+                return str.Substring(owner.Alias.Length + 1);
+            throw new ArgumentException();
+        }
 
         public static IEnumerable<T> NotDeleted<T>(this IEnumerable<T> source) where T : BaseItem
         {
@@ -29,6 +38,14 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
             return source;
         }
 
+        public static TSource Get<TSource>(this ConcurrentDictionary<string, TSource> source,
+            string keySelector)
+        {
+            var res = source.GetOrNullMultiNs(keySelector);
+            if (res == null)
+                throw new Exception(keySelector + " non trovato");
+            return res;
+        }
         public static TSource GetMultiNs<TSource>(this ConcurrentDictionary<string, TSource> source,
             string keySelector, params string[] namespaces)
         {
@@ -44,7 +61,11 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
             if (source.TryGetValue(keySelector, out res))
                 return res;
             if (keySelector.Contains("."))
-                keySelector = keySelector.Split(new[] { '.' }, 2, StringSplitOptions.None)[1];
+            {
+                keySelector = keySelector.Split(new[] { '.' }, StringSplitOptions.None).Last();
+                if (source.TryGetValue(keySelector, out res))
+                    return res;
+            }
             foreach (var ns in namespaces)
             {
                 var keyWithNs = ns + "." + keySelector;

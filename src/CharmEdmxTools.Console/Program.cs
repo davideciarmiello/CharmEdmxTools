@@ -37,6 +37,7 @@ namespace CharmEdmxTools.Console
                 @"Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx");
             edmxFileName = cfgFileName.Replace("Gse.Grin.Platform.Solution.sln.CharmEdmxTools",
                 @"Gse.Grin.ReadModel.Anagrafica\GrinAnagraficaReadEntities.edmx");
+            edmxFileName = @"C:\Davide\ProgettiGit\CharmEdmxTools\BiocarEntitiesModel.edmx";
             var cfg = CharmEdmxConfiguration.Load(cfgFileName);
             //var xdoc = XDocument.Load(edmxFileName);
             //var x = new EdmxContainerNew(xdoc);

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharmEdmxTools.Console", "C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharmEdmxTools.Core", "CharmEdmxTools.Core\CharmEdmxTools.Core.csproj", "{98E027FD-BE99-4274-A6AD-84B29C7B8209}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C148B7D4-1617-4D6C-80B6-CA41A8A08608}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

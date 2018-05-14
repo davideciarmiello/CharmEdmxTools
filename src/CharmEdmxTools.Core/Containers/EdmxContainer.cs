@@ -43,8 +43,8 @@ namespace CharmEdmxTools.Core.Containers
             {
                 var storageEntityTypes = storageModels.SchemaElements.OfType<EntityType>().ToList();
                 var storageEntityContainerItemsEntitySet = storageModels.EntityContainerElements.OfType<EntitySet>().ToConcurrentDictionary(x => x.Name);
-                var conceptualEntityTypesWithNs = conceptualModels.SchemaElements.OfType<EntityType>().ToConcurrentDictionary(x => conceptualModels.Namespace + "." + x.Name);
-                var conceptualEntityContainerItemsEntitySetPerEntityTypeWithNs = conceptualModels.EntityContainerElements.OfType<EntitySet>().ToConcurrentDictionary(x => x.EntityType);
+                var conceptualEntityTypes = conceptualModels.SchemaElements.OfType<EntityType>().ToConcurrentDictionary(x => x.Name);
+                var conceptualEntityContainerItemsEntitySetPerEntityType = conceptualModels.EntityContainerElements.OfType<EntitySet>().ToConcurrentDictionary(x => x.EntityType.RemoveNs(conceptualModels));
 
                 var entities = Entities = new List<EntityRelation>();
                 //storageEntityTypes = storageEntityTypes.Where(x => x.Name == "TA_DQG_DATI_QUALIFICA_GRIN").ToList();
@@ -57,17 +57,17 @@ namespace CharmEdmxTools.Core.Containers
                     it.Mapping = entitySetMappingPerName.GetOrNull(storageEntityType.Name);
                     if (it.Mapping == null)
                         continue;
-                    it.ConceptualEntitySet = conceptualEntityContainerItemsEntitySetPerEntityTypeWithNs.GetOrNullMultiNs(it.Mapping.ConceptualTypeName, conceptualModels.Namespace, conceptualModels.Alias).Add(itemsManaged);
+                    it.ConceptualEntitySet = conceptualEntityContainerItemsEntitySetPerEntityType.GetOrNull(it.Mapping.ConceptualTypeName.RemoveNs(conceptualModels)).Add(itemsManaged); //ns
                     if (it.ConceptualEntitySet == null)
                         continue;
-                    it.Conceptual = conceptualEntityTypesWithNs.GetOrNullMultiNs(it.ConceptualEntitySet.EntityType, conceptualModels.Namespace, conceptualModels.Alias).Add(itemsManaged);
+                    it.Conceptual = conceptualEntityTypes.GetOrNull(it.ConceptualEntitySet.EntityType.RemoveNs(conceptualModels)).Add(itemsManaged); //ns
                 }
 
-                var conceptualOrfani = conceptualEntityTypesWithNs.Values.Except(itemsManaged).Cast<EntityType>().ToList();
+                var conceptualOrfani = conceptualEntityTypes.Values.Except(itemsManaged).Cast<EntityType>().ToList();
                 if (conceptualOrfani.Any())
                 {
                     //var conceptualEntityContainerItemsEntitySetPerEntityType = conceptualModels.EntityContainerElements.OfType<EntitySet>().ToConcurrentDictionary(x => x.EntityType);
-                    var entitySetMappingPerConceptualTypeName = entitySetMapping.ToConcurrentDictionary(x => x.ConceptualTypeName);
+                    var entitySetMappingPerConceptualTypeName = entitySetMapping.ToConcurrentDictionary(x => x.ConceptualTypeName.RemoveNs(conceptualModels)); //ns
 
                     foreach (var conceptualEntityType in conceptualOrfani)
                     {
@@ -75,8 +75,8 @@ namespace CharmEdmxTools.Core.Containers
                         entities.Add(it);
                         it.Conceptual = conceptualEntityType;
                         it.ConceptualEntitySet =
-                            conceptualEntityContainerItemsEntitySetPerEntityTypeWithNs.GetMultiNs(conceptualEntityType.Name, conceptualModels.Namespace, conceptualModels.Alias);
-                        it.Mapping = entitySetMappingPerConceptualTypeName.GetMultiNs(it.ConceptualEntitySet.EntityType, conceptualModels.Namespace, conceptualModels.Alias);
+                            conceptualEntityContainerItemsEntitySetPerEntityType.Get(conceptualEntityType.Name); //no ns
+                        it.Mapping = entitySetMappingPerConceptualTypeName.Get(it.ConceptualEntitySet.EntityType.RemoveNs(conceptualModels)); //ns
                     }
                 }
             }
@@ -85,7 +85,7 @@ namespace CharmEdmxTools.Core.Containers
             {
                 var storageAssociationTypes = storageModels.SchemaElements.OfType<Association>().ToList();
                 var storageAssociationContainerItemsAssociationSet = storageModels.EntityContainerElements.OfType<AssociationSet>().ToConcurrentDictionary(x => x.Name);
-                var conceptualAssociationTypes = conceptualModels.SchemaElements.OfType<Association>().ToConcurrentDictionary(x => conceptualModels.Namespace + "." + x.Name);
+                var conceptualAssociationTypes = conceptualModels.SchemaElements.OfType<Association>().ToConcurrentDictionary(x => x.Name);
                 var conceptualAssociationContainerItemsAssociationSetPerName = conceptualModels.EntityContainerElements.OfType<AssociationSet>().ToConcurrentDictionary(x => x.Name);
 
                 var assocations = Associations = new List<AssociationRelation>();
@@ -100,13 +100,13 @@ namespace CharmEdmxTools.Core.Containers
                         .GetOrNull(it.StorageAssociationSet.Name).Add(itemsManaged);
                     if (it.ConceptualAssociationSet == null)
                         continue;
-                    it.Conceptual = conceptualAssociationTypes.GetOrNull(it.ConceptualAssociationSet.Association).Add(itemsManaged);
+                    it.Conceptual = conceptualAssociationTypes.GetOrNull(it.ConceptualAssociationSet.Association.RemoveNs(conceptualModels)).Add(itemsManaged);
                 }
 
                 var conceptualOrfani = conceptualAssociationTypes.Values.Except(itemsManaged).Cast<Association>().ToList();
                 if (conceptualOrfani.Any())
                 {
-                    var conceptualAssociationContainerItemsAssociationSetPerAssociationType = conceptualModels.EntityContainerElements.OfType<AssociationSet>().ToConcurrentDictionary(x => x.Association);
+                    var conceptualAssociationContainerItemsAssociationSetPerAssociationType = conceptualModels.EntityContainerElements.OfType<AssociationSet>().ToConcurrentDictionary(x => x.Association.RemoveNs(conceptualModels));
 
                     foreach (var conceptualAssociationType in conceptualOrfani)
                     {
@@ -114,19 +114,17 @@ namespace CharmEdmxTools.Core.Containers
                         assocations.Add(it);
                         it.Conceptual = conceptualAssociationType;
                         it.ConceptualAssociationSet =
-                            conceptualAssociationContainerItemsAssociationSetPerAssociationType[conceptualModels.Namespace + "." + conceptualAssociationType.Name];
+                            conceptualAssociationContainerItemsAssociationSetPerAssociationType.Get(conceptualAssociationType.Name);
                     }
                 }
 
-                var conceptualEntities = this.Entities.Where(x => x.Conceptual != null)
-                    .ToConcurrentDictionary(x => this.conceptualModels.Namespace + "." + x.Conceptual.Name);
-                var storageEntities = this.Entities.Where(x => x.Storage != null)
-                    .ToConcurrentDictionary(x => this.conceptualModels.Alias + "." + x.Storage.Name);
+                var conceptualEntities = this.Entities.Where(x => x.Conceptual != null).ToConcurrentDictionary(x => x.Conceptual.Name);
+                var storageEntities = this.Entities.Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name);
 
                 foreach (var assocation in assocations)
                 {
-                    FillAssociation(assocation.Conceptual, assocation, conceptualEntities);
-                    FillAssociation(assocation.Storage, assocation, storageEntities);
+                    FillAssociation(assocation.Conceptual, conceptualEntities, conceptualModels);
+                    FillAssociation(assocation.Storage, storageEntities, storageModels);
                 }
             }
 
@@ -142,8 +140,7 @@ namespace CharmEdmxTools.Core.Containers
                 .ToDictionary(x => x.propertyRelation, x => x.relation);
         }
 
-        private static void FillAssociation(Association container, AssociationRelation assocation,
-            ConcurrentDictionary<string, EntityRelation> conceptualEntities)
+        private static void FillAssociation(Association container, ConcurrentDictionary<string, EntityRelation> conceptualEntities, StorageOrConceptualModels owner)
         {
             if (container == null)
                 return;
@@ -154,7 +151,7 @@ namespace CharmEdmxTools.Core.Containers
             foreach (var end in container.Descendants<End>())
             {
                 var it = new ReferentialConstraintRelation(referentialConstraints[end.Role], end);
-                it.EndEntity = conceptualEntities.GetOrNull(it.EndModelType);
+                it.EndEntity = conceptualEntities.GetOrNull(it.EndModelType.RemoveNs(owner));
                 if (it.IsDependent)
                     container.Dependent = it;
                 else if (it.IsPrincipal)
@@ -206,7 +203,7 @@ namespace CharmEdmxTools.Core.Containers
 
         private void FillNavigationProperties(List<EntityRelation> entities)
         {
-            var assocationsPerNameWithNs = this.Associations.ToConcurrentDictionary(x => this.conceptualModels.Namespace + "." + x.Conceptual.Name);
+            var assocationsPerName = this.Associations.ToConcurrentDictionary(x => x.Conceptual.Name);
 
             foreach (var entity in entities.Where(x => x.Conceptual != null))
             {
@@ -216,7 +213,7 @@ namespace CharmEdmxTools.Core.Containers
                     var prop = new NavigationPropertyRelation();
                     props.Add(prop);
                     prop.NavigationProperty = navigationProperty;
-                    prop.Association = assocationsPerNameWithNs[prop.NavigationProperty.Relationship];
+                    prop.Association = assocationsPerName[prop.NavigationProperty.Relationship.RemoveNs(conceptualModels)];
                     if (prop.Association.NavigationProperties == null)
                         prop.Association.NavigationProperties = new List<NavigationPropertyRelation>();
                     prop.Association.NavigationProperties.Add(prop);
