@@ -38,6 +38,12 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
             return source;
         }
 
+        public static TSource GetOrAddNew<TSource>(this ConcurrentDictionary<string, TSource> source,
+            string keySelector) where TSource : new()
+        {
+            var res = source.GetOrAdd(keySelector, s => new TSource());
+            return res;
+        }
         public static TSource Get<TSource>(this ConcurrentDictionary<string, TSource> source,
             string keySelector)
         {

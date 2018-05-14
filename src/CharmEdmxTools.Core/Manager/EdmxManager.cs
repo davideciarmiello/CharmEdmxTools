@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -70,7 +71,7 @@ namespace CharmEdmxTools.Core.Manager
                 return;
             var storageModelsEntityType = _edmx.Entities.Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name);
             var storageAssociations = _edmx.Associations.Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name);
-
+            var dictRes = new ConcurrentDictionary<string, List<string>>();
             foreach (var operation in _config.ManualOperations)
             {
                 var op = operation.Type;
@@ -85,16 +86,28 @@ namespace CharmEdmxTools.Core.Manager
                     if (op == ManualOperationType.RemoveField)
                     {
                         storageProp.Remove(_edmx);
+                        dictRes.GetOrAddNew(operation.TableName + "." + operation.FieldName).Add("Field Deleted");
                     }
                     else if (op == ManualOperationType.SetFieldAttribute)
                     {
                         if (operation.AttributeValue != null)
-                            storageProp.Storage.XNode.SetAttributeValue(operation.AttributeName, operation.AttributeValue);
+                        {
+                            var attrValue = storageProp.Storage.XNode.GetAttribute(operation.AttributeName);
+                            if (attrValue != operation.AttributeValue)
+                            {
+                                storageProp.Storage.XNode.SetAttributeValue(operation.AttributeName,
+                                    operation.AttributeValue);
+                                dictRes.GetOrAddNew(operation.TableName + "." + operation.FieldName).Add(operation.AttributeName + " [" + attrValue + "] -> [" + operation.AttributeValue + "]");
+                            }
+                        }
                         else
                         {
                             var attrib = storageProp.Storage.XNode.Attribute(operation.AttributeName);
                             if (attrib != null)
+                            {
                                 attrib.Remove();
+                                dictRes.GetOrAddNew(operation.TableName + "." + operation.FieldName).Add("Deleted attr " + operation.AttributeName);
+                            }
                         }
                     }
                 }
@@ -104,7 +117,13 @@ namespace CharmEdmxTools.Core.Manager
                     if (association == null)
                         continue;
                     association.Remove(_edmx);
+                    dictRes.GetOrAddNew(operation.AssociationName).Add("FK Deleted");
                 }
+            }
+
+            foreach (var dictRe in dictRes)
+            {
+                _logger(dictRe.Key + ": " + string.Join(", ", dictRe.Value));
             }
 
         }
