@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using EnvDTE;
-using EnvDTE80;
+//using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -13,7 +13,7 @@ namespace CharmEdmxTools
     /// <summary>
     /// Command handler
     /// </summary>
-    internal sealed class CharmEdmxTools
+    public sealed class CharmEdmxTools
     {
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace CharmEdmxTools
             var mcs = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (mcs != null)
             {
-                var version = Convert.ToInt32(_invoker._dte2.Version.Split('.').First());
+                var version = _invoker.DteVersion;
                 var menuCommandId1 = new CommandID(GuidList.guidCharmEdmxToolsCmdSet, (int)PkgCmdIDList.cmdidEdmxExecAllFixs);
                 var menuItem1 = new OleMenuCommand(EdmxContextMenuItemCallback, null, _invoker.OnOptimizeContextBeforeQueryStatus, menuCommandId1) { Visible = false };
                 mcs.AddCommand(menuItem1);
@@ -73,8 +73,6 @@ namespace CharmEdmxTools
                 var menuCommandId3 = new CommandID(GuidList.guidCharmEdmxToolsCmdSet, version < 14 ? (int)PkgCmdIDList.cmdidEdmxToolbarFixUpper : (int)PkgCmdIDList.cmdidEdmxToolbarFix);
                 var menuItem3 = new OleMenuCommand(EdmxMenuToolbarItemCallback, null, _invoker.OnOptimizeMenuToolbarBeforeQueryStatus, menuCommandId3) { Visible = false };
                 mcs.AddCommand(menuItem3);
-
-                //MessageBox.Show(_invoker._dte2.Version + menuItem3.Text);
             }
         }
 

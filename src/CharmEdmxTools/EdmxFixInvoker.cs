@@ -29,7 +29,13 @@ namespace CharmEdmxTools
         {
             ServiceProvider = serviceProvider;
             _dte2 = ServiceProvider.GetService(typeof(DTE)) as DTE2;
+            if (_dte2 != null)
+            {
+                DteVersion = Convert.ToInt32(_dte2.Version.Split('.').First());
+            }
         }
+
+        public int DteVersion { get; set; }
 
         private IServiceProvider ServiceProvider;
 

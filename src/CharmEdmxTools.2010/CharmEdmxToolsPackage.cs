@@ -1,15 +1,15 @@
 ﻿using System;
-using System.ComponentModel.Design;
-using System.Runtime.Caching;
+using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
-using EnvDTE80;
+using System.ComponentModel.Design;
+using CharmEdmxTools;
+using Microsoft.Win32;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
-
-//using Microsoft.DbContextPackage.Extensions;
-//using Microsoft.DbContextPackage.Handlers;
-//using Microsoft.DbContextPackage.Resources;
-//using Microsoft.DbContextPackage.Utilities;
-//using Microsoft.VisualStudio.Shell.Design;
+using IServiceProvider = System.IServiceProvider;
 
 namespace CharmEdmxTools
 {
@@ -26,13 +26,12 @@ namespace CharmEdmxTools
     // This attribute tells the PkgDef creation utility (CreatePkgDef.exe) that this class is
     // a package.
     [PackageRegistration(UseManagedResourcesOnly = true)]
-    // This attribute is used to register the information needed to show this package
+    // This attribute is used to register the informations needed to show the this package
     // in the Help/About dialog of Visual Studio.
-    [InstalledProductRegistration("#110", "#112", "1.1", IconResourceID = 400)]
+    [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
     // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(GuidList.guidCharmEdmxToolsPkgString)]
-    //[ProvideAutoLoad(UIContextGuids.SolutionHasSingleProject)] 
     [ProvideAutoLoad(Microsoft.VisualStudio.VSConstants.UICONTEXT.SolutionExists_string)]
     public sealed class CharmEdmxToolsPackage : Package
     {
@@ -45,23 +44,27 @@ namespace CharmEdmxTools
         /// </summary>
         public CharmEdmxToolsPackage()
         {
-            //Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
+            //Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
         }
 
 
+
+        /////////////////////////////////////////////////////////////////////////////
+        // Overriden Package Implementation
         #region Package Members
 
         /// <summary>
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
-        /// where you can put all the initialization code that rely on services provided by VisualStudio.
+        /// where you can put all the initilaization code that rely on services provided by VisualStudio.
         /// </summary>
         protected override void Initialize()
         {
             base.Initialize();
             CharmEdmxTools.Initialize(this);
         }
-
         #endregion
 
     }
+
+
 }
