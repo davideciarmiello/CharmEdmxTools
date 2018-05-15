@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Vsix Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
-  <Identifier Id="59eef1d5-b8db-436d-ac28-c3d83b74d98d">
+  <Identifier Id="7ced666a-8d1e-4d19-bc17-3114c8a84ab7">
     <Name>Charm Edmx Tools</Name>
     <Author>Davide Ciarmiello</Author>
-    <Version>5.0</Version>
+    <Version>1.0</Version>
     <Description xml:space="preserve">Tool for automatically fix EDMX problems</Description>
     <Locale>1033</Locale>
     <InstalledByMsi>false</InstalledByMsi>

@@ -1,13 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27703.2000
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharmEdmxTools", "CharmEdmxTools.2017\CharmEdmxTools.csproj", "{241A5061-2F0F-4B58-A5B0-75452E7CFCB4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C148B7D4-1617-4D6C-80B6-CA41A8A08608}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharmEdmxTools", "CharmEdmxTools\CharmEdmxTools.csproj", "{B1A7D3BB-8C9C-431C-81ED-5632218C4199}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharmEdmxTools.Console", "CharmEdmxTools.Console\CharmEdmxTools.Console.csproj", "{61365F35-0869-429A-8AFB-AD39C8BCF619}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharmEdmxTools.Core", "CharmEdmxTools.Core\CharmEdmxTools.Core.csproj", "{98E027FD-BE99-4274-A6AD-84B29C7B8209}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharmEdmxTools.Console", "CharmEdmxTools.Console\CharmEdmxTools.Console.csproj", "{61365F35-0869-429A-8AFB-AD39C8BCF619}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharmEdmxTools.2010", "CharmEdmxTools.2010\CharmEdmxTools.2010.csproj", "{388794C9-B1E1-4058-85F2-88134CDC53B8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,23 +19,27 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{241A5061-2F0F-4B58-A5B0-75452E7CFCB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{241A5061-2F0F-4B58-A5B0-75452E7CFCB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{241A5061-2F0F-4B58-A5B0-75452E7CFCB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{241A5061-2F0F-4B58-A5B0-75452E7CFCB4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{98E027FD-BE99-4274-A6AD-84B29C7B8209}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{98E027FD-BE99-4274-A6AD-84B29C7B8209}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{98E027FD-BE99-4274-A6AD-84B29C7B8209}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{98E027FD-BE99-4274-A6AD-84B29C7B8209}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1A7D3BB-8C9C-431C-81ED-5632218C4199}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1A7D3BB-8C9C-431C-81ED-5632218C4199}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1A7D3BB-8C9C-431C-81ED-5632218C4199}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1A7D3BB-8C9C-431C-81ED-5632218C4199}.Release|Any CPU.Build.0 = Release|Any CPU
 		{61365F35-0869-429A-8AFB-AD39C8BCF619}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{61365F35-0869-429A-8AFB-AD39C8BCF619}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61365F35-0869-429A-8AFB-AD39C8BCF619}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61365F35-0869-429A-8AFB-AD39C8BCF619}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98E027FD-BE99-4274-A6AD-84B29C7B8209}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98E027FD-BE99-4274-A6AD-84B29C7B8209}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98E027FD-BE99-4274-A6AD-84B29C7B8209}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98E027FD-BE99-4274-A6AD-84B29C7B8209}.Release|Any CPU.Build.0 = Release|Any CPU
+		{388794C9-B1E1-4058-85F2-88134CDC53B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{388794C9-B1E1-4058-85F2-88134CDC53B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{388794C9-B1E1-4058-85F2-88134CDC53B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{388794C9-B1E1-4058-85F2-88134CDC53B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {53931EC6-A142-47D4-B599-29C447EEDF7F}
+		SolutionGuid = {47BD4529-F8FC-4C5E-956B-2A1D57864A0D}
 	EndGlobalSection
 EndGlobal

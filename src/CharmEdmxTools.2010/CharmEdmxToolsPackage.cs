@@ -3,13 +3,11 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
-using CharmEdmxTools;
 using Microsoft.Win32;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
-using IServiceProvider = System.IServiceProvider;
 
 namespace CharmEdmxTools
 {
@@ -32,7 +30,7 @@ namespace CharmEdmxTools
     // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(GuidList.guidCharmEdmxToolsPkgString)]
-    [ProvideAutoLoad(Microsoft.VisualStudio.VSConstants.UICONTEXT.SolutionExists_string)]
+    [ProvideAutoLoad(Microsoft.VisualStudio.VSConstants.UICONTEXT.SolutionExists_string)]    
     public sealed class CharmEdmxToolsPackage : Package
     {
         /// <summary>
@@ -44,7 +42,7 @@ namespace CharmEdmxTools
         /// </summary>
         public CharmEdmxToolsPackage()
         {
-            //Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
+            Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
         }
 
 
@@ -59,12 +57,67 @@ namespace CharmEdmxTools
         /// </summary>
         protected override void Initialize()
         {
+            Debugger.Break();
+            
+            Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
             base.Initialize();
+
             CharmEdmxTools.Initialize(this);
+
+            // Add our command handlers for menu (commands must exist in the .vsct file)
+            OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+            if (null != mcs)
+            {
+                //// Create the command for the menu item.
+                //CommandID menuCommandID = GuidList.cmdidEdmxToolbarFixTopLevelMenu;
+                //MenuCommand menuItem = new OleMenuCommand(null, null, OnOptimizeContextBeforeQueryStatus, menuCommandID);
+                //mcs.AddCommand(menuItem);
+
+
+
+            }
         }
+
+        public void OnOptimizeContextBeforeQueryStatus(object sender, EventArgs e)
+        {
+            //Debugger.Break();
+
+            var menuCommand = sender as MenuCommand;
+
+            if (menuCommand == null)
+            {
+                return;
+            }
+
+            menuCommand.Visible = false;
+        }
+
         #endregion
 
+        /// <summary>
+        /// This function is the callback used to execute a command when the a menu item is clicked.
+        /// See the Initialize method to see how the menu item is associated to this function using
+        /// the OleMenuCommandService service and the MenuCommand class.
+        /// </summary>
+        private void MenuItemCallback(object sender, EventArgs e)
+        {
+            // Show a Message Box to prove we were here
+            IVsUIShell uiShell = (IVsUIShell)GetService(typeof(SVsUIShell));
+            Guid clsid = Guid.Empty;
+            int result;
+            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(uiShell.ShowMessageBox(
+                       0,
+                       ref clsid,
+                       "CharmEdmxTools",
+                       string.Format(CultureInfo.CurrentCulture, "Inside {0}.MenuItemCallback()", this.ToString()),
+                       string.Empty,
+                       0,
+                       OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                       OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
+                       OLEMSGICON.OLEMSGICON_INFO,
+                       0,        // false
+                       out result));
+        }
+
     }
-
-
 }

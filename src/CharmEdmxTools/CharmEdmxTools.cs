@@ -72,7 +72,16 @@ namespace CharmEdmxTools
 
                 var menuCommandId3 = new CommandID(GuidList.guidCharmEdmxToolsCmdSet, version < 14 ? (int)PkgCmdIDList.cmdidEdmxToolbarFixUpper : (int)PkgCmdIDList.cmdidEdmxToolbarFix);
                 var menuItem3 = new OleMenuCommand(EdmxMenuToolbarItemCallback, null, _invoker.OnOptimizeMenuToolbarBeforeQueryStatus, menuCommandId3) { Visible = false };
+                if (PkgCmdIDList.TopLevelMenu.HasValue)
+                    menuItem3 = new OleMenuCommand(EdmxMenuToolbarItemCallback, null, null, menuCommandId3) { Visible = false };
                 mcs.AddCommand(menuItem3);
+
+                if (PkgCmdIDList.TopLevelMenu.HasValue)
+                {
+                    menuCommandId3 = new CommandID(GuidList.guidCharmEdmxToolsCmdSet, (int)PkgCmdIDList.TopLevelMenu);
+                    menuItem3 = new OleMenuCommand(null, null, _invoker.OnOptimizeMenuToolbarBeforeQueryStatus, menuCommandId3) { Visible = false };
+                    mcs.AddCommand(menuItem3);
+                }
             }
         }
 
