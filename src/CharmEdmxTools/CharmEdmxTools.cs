@@ -108,7 +108,7 @@ namespace CharmEdmxTools
             var id = menuCommand.CommandID.ID;
             if (id == PkgCmdIDList.cmdidEdmxToolbarFix || id == PkgCmdIDList.cmdidEdmxToolbarFixUpper)
                 id = (int)PkgCmdIDList.cmdidEdmxExecAllFixs;
-            _invoker.ExecEdmxFix(selectedItem, id);
+            _invoker.ExecEdmxFix(selectedItem, _invoker._dte2.ActiveDocument, id);
         }
 
 
@@ -123,7 +123,7 @@ namespace CharmEdmxTools
 
             var selectedItem = _invoker._dte2.SelectedItems.Item(1).ProjectItem;
             var id = menuCommand.CommandID.ID;
-            _invoker.ExecEdmxFix(selectedItem, id);
+            _invoker.ExecEdmxFix(selectedItem, null, id);
         }
     }
 }

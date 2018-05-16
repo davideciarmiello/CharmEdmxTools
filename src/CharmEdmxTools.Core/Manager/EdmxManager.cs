@@ -16,15 +16,15 @@ namespace CharmEdmxTools.Core.Manager
     public class EdmxManager
     {
         private readonly string _path;
-        private readonly XDocument _xDoc;
+        public readonly XDocument _xDoc;
         private readonly EdmxContainer _edmx;
         private readonly string _xDocLoadStr;
         readonly Action<string> _logger;
         readonly CharmEdmxConfiguration _config;
-        public EdmxManager(string path, Action<string> logger, CharmEdmxConfiguration cfg)
+        public EdmxManager(string path, string xmlContent, Action<string> logger, CharmEdmxConfiguration cfg)
         {
             _path = path;
-            _xDoc = XDocument.Load(path);
+            _xDoc = string.IsNullOrEmpty(xmlContent) ? XDocument.Load(path) : XDocument.Parse(xmlContent);
             _xDocLoadStr = _xDoc.ToString();
             _logger = logger ?? new Action<string>(s => { });
             _config = cfg ?? new CharmEdmxConfiguration();

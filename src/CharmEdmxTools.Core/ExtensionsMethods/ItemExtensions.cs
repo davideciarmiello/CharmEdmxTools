@@ -193,11 +193,11 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
             if (versionLower(1) || cfg.NamingNavigationProperty == null)
             {
                 cfg.NamingNavigationProperty = cfg.NamingNavigationProperty ?? new NamingNavigationProperty();
-                cfg.NamingNavigationProperty.Enabled = false;
+                cfg.NamingNavigationProperty.Enabled = true;
                 cfg.NamingNavigationProperty.ModelOne = new NamingNavigationPropertyItem() { Pattern = "PrincipalRole" };
                 cfg.NamingNavigationProperty.ModelMany = new NamingNavigationPropertyItem() { Pattern = "PrincipalRole_DependentPropertyRef" };
-                cfg.NamingNavigationProperty.ListOne = new NamingNavigationPropertyItem() { Pattern = "ListDependentRole" };
-                cfg.NamingNavigationProperty.ListMany = new NamingNavigationPropertyItem() { Pattern = "ListDependentRole_DependentPropertyRef" };
+                cfg.NamingNavigationProperty.ListOne = new NamingNavigationPropertyItem() { Pattern = "DependentRole" };
+                cfg.NamingNavigationProperty.ListMany = new NamingNavigationPropertyItem() { Pattern = "DependentRole_DependentPropertyRef" };
             }
 
             if (versionLower(2))

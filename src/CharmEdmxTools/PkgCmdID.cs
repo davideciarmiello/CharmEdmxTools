@@ -22,5 +22,7 @@ namespace CharmEdmxTools
         public const uint cmdidReverseEngineerCodeFirst = 0x001;
         public const uint cmdidCustomizeReverseEngineerTemplates = 0x005;
 
+
+        public static uint? TopLevelMenu = null;
     };
 }

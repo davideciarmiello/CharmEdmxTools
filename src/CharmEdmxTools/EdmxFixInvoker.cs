@@ -86,15 +86,17 @@ namespace CharmEdmxTools
                 menuCommand.Visible = _dte2.ActiveDocument.Name.ToLowerInvariant().EndsWith(FileExtensions.EntityDataModel);
         }
 
-        public void ExecEdmxFix(ProjectItem selectedItem, int commandId)
+        public void ExecEdmxFix(ProjectItem selectedItem, Document selectedDocument, int commandId)
         {
-            var edmxPath = selectedItem.Properties.Item("FullPath").Value as string;
+            if (selectedItem.Properties == null && selectedDocument != null)
+                selectedItem = null;
+            var edmxPath = selectedItem == null ? selectedDocument.FullName : selectedItem.Properties.Item("FullPath").Value as string;
 
             if (!edmxPath.EndsWith(FileExtensions.EntityDataModel, System.StringComparison.OrdinalIgnoreCase))
                 return;
 
             string configCreatedPath;
-            var config = GetConfigForItem(selectedItem, out configCreatedPath);
+            var config = GetConfigForItem(selectedItem, selectedDocument, out configCreatedPath);
 
             var logger = GetOutputPaneWriteFunction();
 
@@ -106,18 +108,20 @@ namespace CharmEdmxTools
                     return;
                 }
 
-                logger(string.Format(Messages.Current.Avvioelaborazionedi, selectedItem.Name));
+                logger(string.Format(Messages.Current.Avvioelaborazionedi, selectedDocument != null ? selectedDocument.Name : selectedItem.Name));
 
                 var sw = Stopwatch.StartNew();
-                var edmxDocument = selectedItem.Document;
-                if (edmxDocument != null && !edmxDocument.Saved)
-                {
-                    edmxDocument.Save();
-                    logger(string.Format(Messages.Current.SavedEdmxIn, sw.Elapsed));
-                }
+                var edmxDocument = selectedDocument ?? selectedItem.Document;
+                var edmxXml = edmxDocument != null ? GetDocumentText(edmxDocument) : null;
+
+                //if (edmxDocument != null && !edmxDocument.Saved)
+                //{
+                //    edmxDocument.Save();
+                //    logger(string.Format(Messages.Current.SavedEdmxIn, sw.Elapsed));
+                //}
 
                 sw.Restart();
-                var mgr = new EdmxManager(edmxPath, logger, config);
+                var mgr = new EdmxManager(edmxPath, edmxXml, logger, config);
 
                 if (commandId == PkgCmdIDList.cmdidEdmxExecAllFixs)
                 {
@@ -132,29 +136,51 @@ namespace CharmEdmxTools
 
                 if (mgr.IsChanged())
                 {
-                    var designerIsOpened = false;
-                    if (edmxDocument != null && edmxDocument.ActiveWindow != null)
-                    {
-                        edmxDocument.Close(vsSaveChanges.vsSaveChangesNo);
-                        designerIsOpened = true;
-                    }
-                    logger(string.Format(Messages.Current.SavingEdmxAfterFixIn, tempoEsecuzioneFixs));
-                    mgr.Salva();
+                    //var designerIsOpened = false;
+                    //if (edmxDocument != null && edmxDocument.ActiveWindow != null)
+                    //{
+                    //    //edmxDocument.Close(vsSaveChanges.vsSaveChangesNo);
+                    //    designerIsOpened = true;
+                    //}
+
+                    var windowOpened = edmxDocument == null ? _dte2.ItemOperations.OpenFile(edmxPath) : null;
+                    if (edmxDocument == null)
+                        edmxDocument = windowOpened.Document;
+
+                    SetDocumentText(edmxDocument, mgr._xDoc.ToString());
+
+                    if (tempoEsecuzioneFixs > TimeSpan.FromSeconds(1))
+                        logger(string.Format(Messages.Current.SavingEdmxAfterFixIn, tempoEsecuzioneFixs));
+                    //mgr.Salva();
                     sw.Restart();
                     logger(Messages.Current.RielaborazioneEdmx);
-                    var window = _dte2.ItemOperations.OpenFile(edmxPath);
-                    window.Document.Save(); // faccio rielaborare i T4
-                    if (!designerIsOpened)
-                        window.Document.Close(vsSaveChanges.vsSaveChangesYes);
+                    //var window = _dte2.ItemOperations.OpenFile(edmxPath);
+                    //window.Document.Save(); // faccio rielaborare i T4
+                    //if (!designerIsOpened)
+                    //    window.Document.Close(vsSaveChanges.vsSaveChangesYes);
+
+                    edmxDocument.Save();
+
+                    if (windowOpened != null)
+                        windowOpened.Document.Close(vsSaveChanges.vsSaveChangesNo);
+
                     sw.Stop();
                     logger(string.Format(Messages.Current.OperazioneTerminataConSuccessoIn, sw.Elapsed));
                 }
                 else
                 {
+                    if (edmxDocument != null && !edmxDocument.Saved)
+                    {
+                        //sw.Restart();
+                        logger(Messages.Current.RielaborazioneEdmx);
+                        edmxDocument.Save();
+                        tempoEsecuzioneFixs = sw.Elapsed;
+                        //logger(string.Format(Messages.Current.SavedEdmxIn, sw.Elapsed));
+                    }
                     logger(string.Format(Messages.Current.OperazioneTerminataSenzaModificheIn, tempoEsecuzioneFixs));
                 }
 
-                if (config.SccPocoFixer.Enabled)
+                if (config.SccPocoFixer.Enabled && selectedItem != null)
                 {
                     sw.Restart();
                     logger(string.Format(Messages.Current.AvvioVerificaFilesSourceControl));
@@ -187,14 +213,38 @@ namespace CharmEdmxTools
             }
         }
 
-        private CharmEdmxConfiguration GetConfigForItem(ProjectItem selectedItem, out string configCreatedPath)
+        private CharmEdmxConfiguration GetConfigForItem(ProjectItem selectedItem, Document selectedDocument, out string configCreatedPath)
+        {
+            var cfgProj = selectedItem != null ? selectedItem.ContainingProject.FullName : null;
+            var cfgSln = selectedItem != null ? selectedItem.DTE.Solution.FullName : null;
+            if (selectedItem == null)
+            {
+                var fi = new FileInfo(selectedDocument.FullName).Directory;
+                while (fi != null && (cfgProj == null || cfgSln == null))
+                {
+                    cfgProj = cfgProj ?? fi.EnumerateFiles("*.csproj").OrderByDescending(x => x.LastWriteTimeUtc)
+                                  .Select(x => x.FullName).FirstOrDefault();
+                    cfgSln = cfgSln ?? fi.EnumerateFiles("*.sln").OrderByDescending(x => x.LastWriteTimeUtc)
+                                  .Select(x => x.FullName).FirstOrDefault();
+                    fi = fi.Parent;
+                }
+
+                if (cfgProj == null && cfgSln == null)
+                    cfgProj = selectedDocument.FullName;
+                cfgProj = cfgProj ?? cfgSln;
+                cfgSln = cfgSln ?? cfgProj;
+            }
+            return GetConfigForItem(cfgProj, cfgSln, out configCreatedPath);
+        }
+
+        private CharmEdmxConfiguration GetConfigForItem(string proj, string sln, out string configCreatedPath)
         {
             configCreatedPath = null;
-            var config = ConfigCache.Get(selectedItem.ContainingProject.FullName) as CharmEdmxConfiguration;
+            var config = ConfigCache.Get(proj) as CharmEdmxConfiguration;
             if (config != null)
                 return config;
-            var cfgProj = string.Concat(selectedItem.ContainingProject.FullName, ".CharmEdmxTools");
-            var cfgSln = string.Concat(selectedItem.DTE.Solution.FullName, ".CharmEdmxTools");
+            var cfgProj = string.Concat(proj, ".CharmEdmxTools");
+            var cfgSln = string.Concat(sln, ".CharmEdmxTools");
             var lstFile = new List<string>();
             if (System.IO.File.Exists(cfgProj))
             {
@@ -218,7 +268,7 @@ namespace CharmEdmxTools
             }
             var policy = new CacheItemPolicy();
             policy.ChangeMonitors.Add(new HostFileChangeMonitor(lstFile));
-            ConfigCache.Add(selectedItem.ContainingProject.FullName, config, policy);
+            ConfigCache.Add(proj, config, policy);
             return config;
         }
 
@@ -334,6 +384,23 @@ namespace CharmEdmxTools
             }
 
             return (string)extension.Value;
+        }
+
+        private static string GetDocumentText(Document document)
+        {
+            var textDocument = (TextDocument)document.Object("TextDocument");
+            EditPoint editPoint = textDocument.StartPoint.CreateEditPoint();
+            var content = editPoint.GetText(textDocument.EndPoint);
+            return content;
+        }
+
+        private static void SetDocumentText(Document document, string content)
+        {
+            var textDocument = (TextDocument)document.Object("TextDocument");
+            EditPoint editPoint = textDocument.StartPoint.CreateEditPoint();
+            EditPoint endPoint = textDocument.EndPoint.CreateEditPoint();
+            editPoint.ReplaceText(endPoint, content, 0);
+            //document.Save();
         }
 
     }
