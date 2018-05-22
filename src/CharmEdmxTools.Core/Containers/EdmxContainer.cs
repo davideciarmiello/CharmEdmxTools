@@ -76,7 +76,7 @@ namespace CharmEdmxTools.Core.Containers
                         it.Conceptual = conceptualEntityType;
                         it.ConceptualEntitySet =
                             conceptualEntityContainerItemsEntitySetPerEntityType.Get(conceptualEntityType.Name); //no ns
-                        it.Mapping = entitySetMappingPerConceptualTypeName.Get(it.ConceptualEntitySet.EntityType.RemoveNs(conceptualModels)); //ns
+                        it.Mapping = entitySetMappingPerConceptualTypeName.GetOrNull(it.ConceptualEntitySet.EntityType.RemoveNs(conceptualModels)); //ns
                     }
                 }
             }
@@ -135,7 +135,7 @@ namespace CharmEdmxTools.Core.Containers
 
             FillNavigationProperties(Entities);
 
-            PropertiesList = Entities.SelectMany(x => x.Properties,
+            PropertiesList = Entities.Where(x => x.Properties != null).SelectMany(x => x.Properties,
                     (relation, propertyRelation) => new { relation, propertyRelation })
                 .ToDictionary(x => x.propertyRelation, x => x.relation);
         }

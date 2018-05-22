@@ -37,7 +37,7 @@ namespace CharmEdmxTools.Console
                 @"Gse.Grin.DataBaseContext.EF\GrinDbContext.edmx");
             edmxFileName = cfgFileName.Replace("Gse.Grin.Platform.Solution.sln.CharmEdmxTools",
                 @"Gse.Grin.ReadModel.Anagrafica\GrinAnagraficaReadEntities.edmx");
-            edmxFileName = @"C:\Davide\ProgettiGit\CharmEdmxTools\BiocarEntitiesModel.edmx";
+            //edmxFileName = @"C:\Davide\ProgettiGit\CharmEdmxTools\BiocarEntitiesModel.edmx";
             var cfg = CharmEdmxConfiguration.Load(cfgFileName);
             //var xdoc = XDocument.Load(edmxFileName);
             //var x = new EdmxContainerNew(xdoc);
@@ -46,7 +46,7 @@ namespace CharmEdmxTools.Console
 
             //var mgr = new EdmxManager(edmxFileName, System.Console.WriteLine, cfg);
             sw = Stopwatch.StartNew();
-            var mgrnew = new EdmxManager(edmxFileName, System.Console.WriteLine, cfg);
+            var mgrnew = new EdmxManager(edmxFileName, null, System.Console.WriteLine, cfg);
             InvokeFull(mgrnew);
             sw.Stop();
             //13 secondi

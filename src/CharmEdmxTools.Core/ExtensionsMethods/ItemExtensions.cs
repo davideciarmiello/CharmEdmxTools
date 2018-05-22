@@ -47,39 +47,39 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
         public static TSource Get<TSource>(this ConcurrentDictionary<string, TSource> source,
             string keySelector)
         {
-            var res = source.GetOrNullMultiNs(keySelector);
+            var res = source.GetOrNull(keySelector);
             if (res == null)
                 throw new Exception(keySelector + " non trovato");
             return res;
         }
-        public static TSource GetMultiNs<TSource>(this ConcurrentDictionary<string, TSource> source,
-            string keySelector, params string[] namespaces)
-        {
-            var res = source.GetOrNullMultiNs(keySelector, namespaces);
-            if (res == null)
-                throw new Exception(keySelector + " non trovato");
-            return res;
-        }
+        //public static TSource GetMultiNs<TSource>(this ConcurrentDictionary<string, TSource> source,
+        //    string keySelector, params string[] namespaces)
+        //{
+        //    var res = source.GetOrNullMultiNs(keySelector, namespaces);
+        //    if (res == null)
+        //        throw new Exception(keySelector + " non trovato");
+        //    return res;
+        //}
 
-        public static TSource GetOrNullMultiNs<TSource>(this ConcurrentDictionary<string, TSource> source, string keySelector, params string[] namespaces)
-        {
-            TSource res;
-            if (source.TryGetValue(keySelector, out res))
-                return res;
-            if (keySelector.Contains("."))
-            {
-                keySelector = keySelector.Split(new[] { '.' }, StringSplitOptions.None).Last();
-                if (source.TryGetValue(keySelector, out res))
-                    return res;
-            }
-            foreach (var ns in namespaces)
-            {
-                var keyWithNs = ns + "." + keySelector;
-                if (source.TryGetValue(keyWithNs, out res))
-                    return res;
-            }
-            return default(TSource);
-        }
+        //public static TSource GetOrNullMultiNs<TSource>(this ConcurrentDictionary<string, TSource> source, string keySelector, params string[] namespaces)
+        //{
+        //    TSource res;
+        //    if (source.TryGetValue(keySelector, out res))
+        //        return res;
+        //    if (keySelector.Contains("."))
+        //    {
+        //        keySelector = keySelector.Split(new[] { '.' }, StringSplitOptions.None).Last();
+        //        if (source.TryGetValue(keySelector, out res))
+        //            return res;
+        //    }
+        //    foreach (var ns in namespaces)
+        //    {
+        //        var keyWithNs = ns + "." + keySelector;
+        //        if (source.TryGetValue(keyWithNs, out res))
+        //            return res;
+        //    }
+        //    return default(TSource);
+        //}
         public static TSource GetOrNull<TSource, TKey>(this ConcurrentDictionary<TKey, TSource> source, TKey keySelector)
         {
             TSource res;

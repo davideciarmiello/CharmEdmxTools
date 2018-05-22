@@ -7,6 +7,11 @@ namespace CharmEdmxTools.Core.Containers
 {
     public class PropertyRelation : IRemovable
     {
+        public override string ToString()
+        {
+            return (Conceptual ?? Storage).Name;
+        }
+
         public Property Storage { get; set; }
         public Property Conceptual { get; set; }
 
@@ -21,7 +26,7 @@ namespace CharmEdmxTools.Core.Containers
             if (container.AlreadyRemoved(this))
                 return;
             new BaseItem[] { Storage, Conceptual, StorageKey, ConceptualKey, ScalarProperty }.RemoveAll();
-            
+
             var entity = container.PropertiesList[this];
 
             if (this.Storage != null)
