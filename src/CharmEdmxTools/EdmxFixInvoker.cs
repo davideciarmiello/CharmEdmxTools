@@ -58,7 +58,8 @@ namespace CharmEdmxTools
             {
                 return;
             }
-
+            //menuCommand.Visible = true;
+            //return;
             if (_dte2.SelectedItems.Count != 1)
             {
                 menuCommand.Visible = false;
@@ -272,7 +273,7 @@ namespace CharmEdmxTools
             return config;
         }
 
-        private IVsSccManager2 GetSccManager()
+        public IVsSccManager2 GetSccManager()
         {
             var sscMgr = ServiceProvider.GetService(typeof(SVsSccManager)) as IVsSccManager2;
             if (sscMgr == null)
@@ -315,7 +316,7 @@ namespace CharmEdmxTools
             return false;
         }
 
-        private Action<string> GetOutputPaneWriteFunction(string name = "Charm Edmx Tools", Guid? guid = null)
+        public Action<string> GetOutputPaneWriteFunction(string name = "Charm Edmx Tools", Guid? guid = null)
         {
             var customPane = _dte2.ToolWindows.OutputWindow.OutputWindowPanes.OfType<OutputWindowPane>().FirstOrDefault(it => it.Name == name);
             if (customPane == null)
@@ -336,6 +337,7 @@ namespace CharmEdmxTools
             //var toActivate = true;
             return new System.Action<string>(s =>
             {
+                Trace.WriteLine(s);
                 //if (toActivate)
                 //{
                 //     toActivate = false;

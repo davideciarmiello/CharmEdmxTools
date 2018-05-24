@@ -61,6 +61,12 @@ namespace CharmEdmxTools
             CharmEdmxTools.Initialize(this);
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            CharmEdmxTools.DisposePackage();
+            base.Dispose(disposing);
+        }
+
         #endregion
 
     }
