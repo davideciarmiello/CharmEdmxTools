@@ -164,9 +164,10 @@ namespace CharmEdmxTools
 
                     if (windowOpened != null)
                         windowOpened.Document.Close(vsSaveChanges.vsSaveChangesNo);
-
                     sw.Stop();
                     logger(string.Format(Messages.Current.OperazioneTerminataConSuccessoIn, sw.Elapsed));
+                    if (windowOpened == null)
+                        mgr.Salva();
                 }
                 else
                 {
@@ -181,32 +182,32 @@ namespace CharmEdmxTools
                     logger(string.Format(Messages.Current.OperazioneTerminataSenzaModificheIn, tempoEsecuzioneFixs));
                 }
 
-                if (config.SccPocoFixer.Enabled && selectedItem != null)
-                {
-                    sw.Restart();
-                    logger(string.Format(Messages.Current.AvvioVerificaFilesSourceControl));
-                    var ttname = selectedItem.Name.Remove(selectedItem.Name.Length - 4) + "tt";
-                    var ttItem = selectedItem.ProjectItems.OfType<ProjectItem>().FirstOrDefault(it => string.Equals(it.Name, ttname, StringComparison.OrdinalIgnoreCase));
-                    if (ttItem != null && _dte2.SourceControl != null)
-                    {
-                        var csname = selectedItem.Name.Remove(selectedItem.Name.Length - 4) + "cs";
-                        var allItems = ttItem.ProjectItems.OfType<ProjectItem>().Where(it => !string.Equals(it.Name, csname, System.StringComparison.OrdinalIgnoreCase)).ToList();
-                        var sscMgr = GetSccManager();
-                        TfsHelper tfsHelper = null;
-                        foreach (var item in allItems)
-                        {
-                            if (EnsureAddFileToSccIfExists(item, ttItem, sscMgr, ref tfsHelper))
-                            {
-                                logger(string.Format(Messages.Current.AggiuntoFileASourceControl, item.Name));
-                            }
-                        }
-                        if (tfsHelper != null)
-                        {
-                            tfsHelper.Close();
-                        }
-                    }
-                    logger(string.Format(Messages.Current.OperazioneTerminataConSuccessoIn, sw.Elapsed));
-                }
+                //if (config.SccPocoFixer.Enabled && selectedItem != null)
+                //{
+                //    sw.Restart();
+                //    logger(string.Format(Messages.Current.AvvioVerificaFilesSourceControl));
+                //    var ttname = selectedItem.Name.Remove(selectedItem.Name.Length - 4) + "tt";
+                //    var ttItem = selectedItem.ProjectItems.OfType<ProjectItem>().FirstOrDefault(it => string.Equals(it.Name, ttname, StringComparison.OrdinalIgnoreCase));
+                //    if (ttItem != null && _dte2.SourceControl != null)
+                //    {
+                //        var csname = selectedItem.Name.Remove(selectedItem.Name.Length - 4) + "cs";
+                //        var allItems = ttItem.ProjectItems.OfType<ProjectItem>().Where(it => !string.Equals(it.Name, csname, System.StringComparison.OrdinalIgnoreCase)).ToList();
+                //        var sscMgr = GetSccManager();
+                //        TfsHelper tfsHelper = null;
+                //        foreach (var item in allItems)
+                //        {
+                //            if (EnsureAddFileToSccIfExists(item, ttItem, sscMgr, ref tfsHelper))
+                //            {
+                //                logger(string.Format(Messages.Current.AggiuntoFileASourceControl, item.Name));
+                //            }
+                //        }
+                //        if (tfsHelper != null)
+                //        {
+                //            tfsHelper.Close();
+                //        }
+                //    }
+                //    logger(string.Format(Messages.Current.OperazioneTerminataConSuccessoIn, sw.Elapsed));
+                //}
             }
             catch (Exception ex)
             {
@@ -284,37 +285,37 @@ namespace CharmEdmxTools
             return sscMgr;
         }
 
-        private bool EnsureAddFileToSccIfExists(ProjectItem item, ProjectItem itemParent, IVsSccManager2 sscMgr, ref TfsHelper tfsHelper)
-        {
-            var fullPath = item.Properties.Item("FullPath").Value as string;
-            if (!System.IO.File.Exists(fullPath))
-                return false;
-            if (item.DTE.SourceControl != null && !item.DTE.SourceControl.IsItemUnderSCC(fullPath))
-            {
-                if (sscMgr != null)
-                {
-                    var icons = new VsStateIcon[1];
-                    var status = new uint[1];
-                    var res = sscMgr.GetSccGlyph(1, new[] { fullPath }, icons, status);
-                    if (res == VSConstants.S_FALSE && icons != null && icons.Length > 0 && icons[0] != VsStateIcon.STATEICON_BLANK)
-                    {
-                        // già è stato aggiunto
-                        return false;
-                    }
-                }
+        //private bool EnsureAddFileToSccIfExists(ProjectItem item, ProjectItem itemParent, IVsSccManager2 sscMgr, ref TfsHelper tfsHelper)
+        //{
+        //    var fullPath = item.Properties.Item("FullPath").Value as string;
+        //    if (!System.IO.File.Exists(fullPath))
+        //        return false;
+        //    if (item.DTE.SourceControl != null && !item.DTE.SourceControl.IsItemUnderSCC(fullPath))
+        //    {
+        //        if (sscMgr != null)
+        //        {
+        //            var icons = new VsStateIcon[1];
+        //            var status = new uint[1];
+        //            var res = sscMgr.GetSccGlyph(1, new[] { fullPath }, icons, status);
+        //            if (res == VSConstants.S_FALSE && icons != null && icons.Length > 0 && icons[0] != VsStateIcon.STATEICON_BLANK)
+        //            {
+        //                // già è stato aggiunto
+        //                return false;
+        //            }
+        //        }
 
-                if (tfsHelper == null)
-                {
-                    tfsHelper = new TfsHelper(item.ContainingProject.FullName);
-                    tfsHelper.Connect(true);
-                }
+        //        if (tfsHelper == null)
+        //        {
+        //            tfsHelper = new TfsHelper(item.ContainingProject.FullName);
+        //            tfsHelper.Connect(true);
+        //        }
 
-                tfsHelper.PendAdd(fullPath);
+        //        tfsHelper.PendAdd(fullPath);
 
-                return true;
-            }
-            return false;
-        }
+        //        return true;
+        //    }
+        //    return false;
+        //}
 
         public Action<string> GetOutputPaneWriteFunction(string name = "Charm Edmx Tools", Guid? guid = null)
         {
@@ -388,7 +389,7 @@ namespace CharmEdmxTools
             return (string)extension.Value;
         }
 
-        private static string GetDocumentText(Document document)
+        public static string GetDocumentText(Document document)
         {
             var textDocument = (TextDocument)document.Object("TextDocument");
             EditPoint editPoint = textDocument.StartPoint.CreateEditPoint();

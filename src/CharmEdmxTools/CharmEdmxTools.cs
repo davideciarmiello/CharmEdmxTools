@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using EnvDTE;
@@ -16,7 +19,7 @@ namespace CharmEdmxTools
     /// <summary>
     /// Command handler
     /// </summary>
-    public sealed class CharmEdmxTools : IVsTrackProjectDocumentsEvents2, IDisposable
+    public sealed class CharmEdmxTools : IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents3, IDisposable
     {
 
         /// <summary>
@@ -103,10 +106,45 @@ namespace CharmEdmxTools
 
             events = _invoker._dte2.Events;
             documentEvents = events.DocumentEvents;
+            //documentEvents.DocumentOpened += DocumentEventsOnDocumentOpened;
+            documentEvents.DocumentClosing += DocumentEventsOnDocumentClosing;
             documentEvents.DocumentSaved += DocumentEventsOnDocumentSaved;
+
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                commandEvents = events.CommandEvents;
+                commandEvents.BeforeExecute += CommandEventsOnBeforeExecute;
+            }
+            //events.TextEditorEvents.LineChanged += TextEditorEventsOnLineChanged;
+            //events.SolutionItemsEvents.ItemRemoved += SolutionItemsEventsOnItemRemoved;
+            //var doctracker = (IVsRunningDocTableEvents3)this.ServiceProvider.GetService(typeof(SVsTrackProjectDocuments));
+
+            m_RDT = (IVsRunningDocumentTable)this.ServiceProvider.GetService(typeof(SVsRunningDocumentTable));
+            m_RDT.AdviseRunningDocTableEvents(this, out m_rdtCookie);
         }
+        IVsRunningDocumentTable m_RDT;
+        uint m_rdtCookie = 0;
+
+
+
+        private void CommandEventsOnBeforeExecute(string guid, int i, object customIn, object customOut, ref bool cancelDefault)
+        {
+            /*T4: {1496A755-94DE-11D0-8C3F-00C04FC2AAE2} - id:1117 - name:Project.RunCustomTool*/
+            if (i == 1627 || i == 1990 || i == 684 || i == 1628)
+                return;
+            var cmd = this._invoker._dte2.Commands.Item(guid, i);
+            if (cmd == null)
+                return;
+            _invoker.GetOutputPaneWriteFunction()("CommandEventsOnBeforeExecute doc:" + guid + " - id:" + i + " - name:" + cmd.Name);
+        }
+
         public void Dispose()
         {
+            if (m_RDT != null)
+            {
+                m_RDT.UnadviseRunningDocTableEvents(m_rdtCookie);
+                m_RDT = null;
+            }
             if (this._trackerCookie == 0)
                 return;
             var tracker = (IVsTrackProjectDocuments2)this.ServiceProvider.GetService(typeof(SVsTrackProjectDocuments));
@@ -118,6 +156,7 @@ namespace CharmEdmxTools
         private uint _trackerCookie;
         private EnvDTE.Events events;
         private DocumentEvents documentEvents;
+        private CommandEvents commandEvents;
 
         /// <summary>
         /// Gets the service provider from the owner package.
@@ -236,8 +275,6 @@ namespace CharmEdmxTools
         }
 
 
-
-
         //public void OnConnection(object application, ext_ConnectMode connectMode, object addInInst, ref Array custom)
         //{
         //    _applicationObject = (DTE2)application;
@@ -251,9 +288,9 @@ namespace CharmEdmxTools
         public int OnQueryAddFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYADDFILEFLAGS[] rgFlags,
             VSQUERYADDFILERESULTS[] pSummaryResult, VSQUERYADDFILERESULTS[] rgResults)
         {
-            var msg = "OnQueryAddFiles pProject:" + pProject + " file[0]:" + rgpszMkDocuments[0];
-            Trace.WriteLine(msg);
-            _invoker.GetOutputPaneWriteFunction()(msg);
+            //var msg = "OnQueryAddFiles pProject:" + pProject + " file[0]:" + rgpszMkDocuments[0];
+            //Trace.WriteLine(msg);
+            //_invoker.GetOutputPaneWriteFunction()(msg);
             return VSConstants.E_NOTIMPL;
         }
 
@@ -385,14 +422,69 @@ namespace CharmEdmxTools
 
         private void DocumentEventsOnDocumentSaved(Document document)
         {
-            _invoker.GetOutputPaneWriteFunction()("DocumentEventsOnDocumentSaved doc:" + document.FullName);
+            SavingItemInfo it;
+            if (edmxSaving.TryRemove(document.FullName, out it))
+            {
+                if (it.FilesNonEliminati != null)
+                {
+                    var logger = _invoker.GetOutputPaneWriteFunction();
+                    logger("Ignore del delete dei seguenti files per fix SSC: " + string.Join(", ", it.FilesNonEliminati));
+                }
+            }
+        }
+
+        private void DocumentEventsOnDocumentClosing(Document document)
+        {
+            DocumentEventsOnDocumentSaved(document);
+            //SavingItemInfo it;
+            //edmxSaving.TryRemove(document.FullName, out it);
+            //_invoker.GetOutputPaneWriteFunction()("DocumentEventsOnDocumentClosing doc:" + document.FullName);
         }
 
         public int OnQueryRemoveFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYREMOVEFILEFLAGS[] rgFlags,
             VSQUERYREMOVEFILERESULTS[] pSummaryResult, VSQUERYREMOVEFILERESULTS[] rgResults)
         {
-            var msg = "OnQueryRemoveFiles pProject:" + pProject + " file[0]:" + rgpszMkDocuments[0];
-            _invoker.GetOutputPaneWriteFunction()(msg);
+            if (this.edmxSaving.Count == 0)
+                return VSConstants.S_OK;
+
+            for (var index = 0; index < rgpszMkDocuments.Length; index++)
+            {
+                var rgpszMkDocument = rgpszMkDocuments[index];
+                var modelName = Path.GetFileNameWithoutExtension(rgpszMkDocument);
+                var entityType = @"<EntityType Name=""" + modelName + @"""";
+                var fileUsed = false;
+                foreach (var savingItemInfo in edmxSaving)
+                {
+                    if (savingItemInfo.Value.XmlContent == null)
+                    {
+                        var document = _invoker._dte2.Documents.OfType<Document>()
+                            .SingleOrDefault(x => x.FullName == savingItemInfo.Key);
+                        savingItemInfo.Value.XmlContent = EdmxFixInvoker.GetDocumentText(document);
+                        savingItemInfo.Value.Path = new FileInfo(savingItemInfo.Key).Directory.FullName;
+                    }
+                    if (!rgpszMkDocument.StartsWith(savingItemInfo.Value.Path))
+                        continue;
+                    if (savingItemInfo.Value.XmlContent.Contains(entityType))
+                    {
+                        fileUsed = true;
+                        savingItemInfo.Value.FilesNonEliminati = savingItemInfo.Value.FilesNonEliminati ?? new List<string>();
+                        savingItemInfo.Value.FilesNonEliminati.Add(Path.GetFileName(rgpszMkDocument));
+                        break;
+                    }
+                }
+
+                if (fileUsed)
+                {
+                    pSummaryResult[0] = VSQUERYREMOVEFILERESULTS.VSQUERYREMOVEFILERESULTS_RemoveNotOK;
+                    if (rgResults != null)
+                    {
+                        rgResults[index] = VSQUERYREMOVEFILERESULTS.VSQUERYREMOVEFILERESULTS_RemoveNotOK;
+                    }
+                }
+            }
+
+            //var msg = "OnQueryRemoveFiles pProject:" + pProject + " - res: " + pSummaryResult[0] + " file[0]:" + rgpszMkDocuments[0];
+            //_invoker.GetOutputPaneWriteFunction()(msg);
 
             //per non farlo proseguire, mettere su RemoveNotOK
             //pSummaryResult[0] = VSQUERYREMOVEFILERESULTS.VSQUERYREMOVEFILERESULTS_RemoveNotOK;
@@ -431,7 +523,7 @@ namespace CharmEdmxTools
 
             //var sc = templateItem.DTE.SourceControl;
 
-            return VSConstants.E_NOTIMPL;
+            return VSConstants.S_OK;
         }
 
         public int OnQueryRemoveDirectories(IVsProject pProject, int cDirectories, string[] rgpszMkDocuments,
@@ -447,5 +539,157 @@ namespace CharmEdmxTools
             return VSConstants.E_NOTIMPL;
         }
 
+        int IVsRunningDocTableEvents.OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents3.OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining,
+            uint dwEditLocksRemaining)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents3.OnAfterSave(uint docCookie)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents3.OnAfterAttributeChange(uint docCookie, uint grfAttribs)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents3.OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents3.OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents3.OnAfterAttributeChangeEx(uint docCookie, uint grfAttribs, IVsHierarchy pHierOld, uint itemidOld,
+            string pszMkDocumentOld, IVsHierarchy pHierNew, uint itemidNew, string pszMkDocumentNew)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        public int OnBeforeSave(uint docCookie)
+        {
+            if (_invoker._dte2.SourceControl == null)
+                return VSConstants.S_OK;
+
+            uint flags, readlocks, editlocks;
+            string name; IVsHierarchy hier;
+            uint itemid; IntPtr docData;
+            m_RDT.GetDocumentInfo(docCookie, out flags, out readlocks, out editlocks, out name, out hier, out itemid, out docData);
+
+            if (name == null)
+                return VSConstants.E_NOTIMPL;
+
+            if (!name.EndsWith(".edmx", StringComparison.OrdinalIgnoreCase))
+            {
+                return VSConstants.S_OK;
+            }
+
+            edmxSaving.AddOrUpdate(name, s => new SavingItemInfo(), (s, info) => new SavingItemInfo());
+
+            //_invoker.GetOutputPaneWriteFunction()("OnBeforeSave name:" + name);
+
+            return VSConstants.S_OK;
+        }
+
+        private readonly ConcurrentDictionary<string, SavingItemInfo> edmxSaving = new ConcurrentDictionary<string, SavingItemInfo>();
+
+        private class SavingItemInfo
+        {
+            public string XmlContent { get; set; }
+            public string Path { get; set; }
+            public List<string> FilesNonEliminati { get; set; }
+        }
+
+        int IVsRunningDocTableEvents3.OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents2.OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining,
+            uint dwEditLocksRemaining)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents2.OnAfterSave(uint docCookie)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents2.OnAfterAttributeChange(uint docCookie, uint grfAttribs)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents2.OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents2.OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents2.OnAfterAttributeChangeEx(uint docCookie, uint grfAttribs, IVsHierarchy pHierOld, uint itemidOld,
+            string pszMkDocumentOld, IVsHierarchy pHierNew, uint itemidNew, string pszMkDocumentNew)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents2.OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents.OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining,
+            uint dwEditLocksRemaining)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents.OnAfterSave(uint docCookie)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents.OnAfterAttributeChange(uint docCookie, uint grfAttribs)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents.OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsRunningDocTableEvents.OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+
+        public Project GetProject(IVsHierarchy hierarchy)
+        {
+            object project;
+
+            ErrorHandler.ThrowOnFailure
+            (hierarchy.GetProperty(
+                VSConstants.VSITEMID_ROOT,
+                (int)__VSHPROPID.VSHPROPID_ExtObject,
+                out project));
+
+            return (project as Project);
+        }
     }
 }
