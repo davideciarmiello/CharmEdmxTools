@@ -87,17 +87,22 @@ namespace CharmEdmxTools
                 menuCommand.Visible = _dte2.ActiveDocument.Name.ToLowerInvariant().EndsWith(FileExtensions.EntityDataModel);
         }
 
-        public void ExecEdmxFix(ProjectItem selectedItem, Document selectedDocument, int commandId)
+        public bool ExecAllFixsWithoutSave(Document selectedDocument)
         {
-            if (selectedItem.Properties == null && selectedDocument != null)
+            return ExecEdmxFix(null, selectedDocument, (int)PkgCmdIDList.cmdidEdmxExecAllFixs, true);
+        }
+
+        public bool ExecEdmxFix(ProjectItem selectedItem, Document selectedDocument, int commandId, bool skipSave = false)
+        {
+            if (selectedItem != null && selectedItem.Properties == null && selectedDocument != null)
                 selectedItem = null;
             var edmxPath = selectedItem == null ? selectedDocument.FullName : selectedItem.Properties.Item("FullPath").Value as string;
 
             if (!edmxPath.EndsWith(FileExtensions.EntityDataModel, System.StringComparison.OrdinalIgnoreCase))
-                return;
+                return false;
 
             string configCreatedPath;
-            var config = GetConfigForItem(selectedItem, selectedDocument, out configCreatedPath);
+            var config = GetConfigForItem(selectedItem, selectedDocument, true, out configCreatedPath);
 
             var logger = GetOutputPaneWriteFunction();
 
@@ -106,7 +111,7 @@ namespace CharmEdmxTools
                 if (configCreatedPath != null)
                 {
                     logger(string.Format(Messages.Current.CreatedConfig, configCreatedPath));
-                    return;
+                    return false;
                 }
 
                 logger(string.Format(Messages.Current.Avvioelaborazionedi, selectedDocument != null ? selectedDocument.Name : selectedItem.Name));
@@ -134,8 +139,8 @@ namespace CharmEdmxTools
                 }
 
                 var tempoEsecuzioneFixs = sw.Elapsed;
-
-                if (mgr.IsChanged())
+                var changed = mgr.IsChanged();
+                if (changed)
                 {
                     //var designerIsOpened = false;
                     //if (edmxDocument != null && edmxDocument.ActiveWindow != null)
@@ -159,19 +164,19 @@ namespace CharmEdmxTools
                     //window.Document.Save(); // faccio rielaborare i T4
                     //if (!designerIsOpened)
                     //    window.Document.Close(vsSaveChanges.vsSaveChangesYes);
-
-                    edmxDocument.Save();
+                    if (!skipSave)
+                        edmxDocument.Save();
 
                     if (windowOpened != null)
                         windowOpened.Document.Close(vsSaveChanges.vsSaveChangesNo);
                     sw.Stop();
                     logger(string.Format(Messages.Current.OperazioneTerminataConSuccessoIn, sw.Elapsed));
-                    if (windowOpened == null)
+                    if (windowOpened == null && !skipSave)
                         mgr.Salva();
                 }
                 else
                 {
-                    if (edmxDocument != null && !edmxDocument.Saved)
+                    if (edmxDocument != null && !edmxDocument.Saved && !skipSave)
                     {
                         //sw.Restart();
                         logger(Messages.Current.RielaborazioneEdmx);
@@ -208,14 +213,16 @@ namespace CharmEdmxTools
                 //    }
                 //    logger(string.Format(Messages.Current.OperazioneTerminataConSuccessoIn, sw.Elapsed));
                 //}
+                return changed;
             }
             catch (Exception ex)
             {
                 logger("ERROR: " + ex);
+                return false;
             }
         }
 
-        private CharmEdmxConfiguration GetConfigForItem(ProjectItem selectedItem, Document selectedDocument, out string configCreatedPath)
+        public CharmEdmxConfiguration GetConfigForItem(ProjectItem selectedItem, Document selectedDocument, bool autoCreate, out string configCreatedPath)
         {
             var cfgProj = selectedItem != null ? selectedItem.ContainingProject.FullName : null;
             var cfgSln = selectedItem != null ? selectedItem.DTE.Solution.FullName : null;
@@ -236,10 +243,10 @@ namespace CharmEdmxTools
                 cfgProj = cfgProj ?? cfgSln;
                 cfgSln = cfgSln ?? cfgProj;
             }
-            return GetConfigForItem(cfgProj, cfgSln, out configCreatedPath);
+            return GetConfigForItem(cfgProj, cfgSln, autoCreate, out configCreatedPath);
         }
 
-        private CharmEdmxConfiguration GetConfigForItem(string proj, string sln, out string configCreatedPath)
+        public CharmEdmxConfiguration GetConfigForItem(string proj, string sln, bool autoCreate, out string configCreatedPath)
         {
             configCreatedPath = null;
             var config = ConfigCache.Get(proj) as CharmEdmxConfiguration;
@@ -260,6 +267,8 @@ namespace CharmEdmxTools
             }
             else
             {
+                if (autoCreate == false)
+                    return null;
                 config = new CharmEdmxConfiguration();
                 config.FillDefaultConfiguration();
                 config.SccPocoFixer.Enabled = GetSccManager() != null;

@@ -44,11 +44,12 @@ namespace CharmEdmxTools.Core.EdmxConfig
         }
 
         //public List<add> appSettings { get; set; }
+        public bool AutoFixOnSave { get; set; }
         public SccPocoFixer SccPocoFixer { get; set; }
         public NamingNavigationProperty NamingNavigationProperty { get; set; }
         public List<ManualOperation> ManualOperations { get; set; }
         public List<edmMappingConfiguration> EdmMappingConfigurations { get; set; }
-
+        
 
         //public string GetValue(string key, string defaultValue = "")
         //{

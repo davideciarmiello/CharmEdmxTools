@@ -430,6 +430,11 @@ namespace CharmEdmxTools
                     var logger = _invoker.GetOutputPaneWriteFunction();
                     logger("Ignore del delete dei seguenti files per fix SSC: " + string.Join(", ", it.FilesNonEliminati));
                 }
+                if (it.AutoFixed)
+                {
+                    var cont = File.ReadAllBytes(document.FullName);
+                    File.WriteAllBytes(document.FullName, cont);
+                }
             }
         }
 
@@ -594,10 +599,15 @@ namespace CharmEdmxTools
                 return VSConstants.S_OK;
             }
 
-            edmxSaving.AddOrUpdate(name, s => new SavingItemInfo(), (s, info) => new SavingItemInfo());
-
+            var it = edmxSaving.AddOrUpdate(name, s => new SavingItemInfo(), (s, info) => new SavingItemInfo());
+            it.Document = _invoker._dte2.Documents.OfType<Document>().SingleOrDefault(x => x.FullName == name);
+            string cfgCreated;
+            var cfg = _invoker.GetConfigForItem(null, it.Document, false, out cfgCreated);
+            if (cfg != null && cfg.AutoFixOnSave && cfgCreated == null)
+            {
+                it.AutoFixed = _invoker.ExecAllFixsWithoutSave(it.Document);
+            }
             //_invoker.GetOutputPaneWriteFunction()("OnBeforeSave name:" + name);
-
             return VSConstants.S_OK;
         }
 
@@ -608,6 +618,8 @@ namespace CharmEdmxTools
             public string XmlContent { get; set; }
             public string Path { get; set; }
             public List<string> FilesNonEliminati { get; set; }
+            public Document Document { get; set; }
+            public bool AutoFixed { get; set; }
         }
 
         int IVsRunningDocTableEvents3.OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)

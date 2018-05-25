@@ -225,6 +225,11 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
                 cfg.ManualOperations.Add(new ManualOperation() { Type = ManualOperationType.RemoveAssociation, AssociationName = "FK_TEST" });
             }
 
+            if (versionLower(6))
+            {
+                cfg.AutoFixOnSave = true;
+            }
+
             if (cfg.Version >= maxVersion)
                 return false;
             cfg.Version = maxVersion;
