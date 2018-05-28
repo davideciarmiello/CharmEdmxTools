@@ -92,6 +92,7 @@ namespace CharmEdmxTools
             return ExecEdmxFix(null, selectedDocument, (int)PkgCmdIDList.cmdidEdmxExecAllFixs, true);
         }
 
+        public bool Fixing { get; private set; }
         public bool ExecEdmxFix(ProjectItem selectedItem, Document selectedDocument, int commandId, bool skipSave = false)
         {
             if (selectedItem != null && selectedItem.Properties == null && selectedDocument != null)
@@ -105,7 +106,7 @@ namespace CharmEdmxTools
             var config = GetConfigForItem(selectedItem, selectedDocument, true, out configCreatedPath);
 
             var logger = GetOutputPaneWriteFunction();
-
+            Fixing = true;
             try
             {
                 if (configCreatedPath != null)
@@ -114,7 +115,8 @@ namespace CharmEdmxTools
                     return false;
                 }
 
-                logger(string.Format(Messages.Current.Avvioelaborazionedi, selectedDocument != null ? selectedDocument.Name : selectedItem.Name));
+                logger(string.Format(Messages.Current.Avvioelaborazionedi,
+                    selectedDocument != null ? selectedDocument.Name : selectedItem.Name));
 
                 var sw = Stopwatch.StartNew();
                 var edmxDocument = selectedDocument ?? selectedItem.Document;
@@ -184,6 +186,7 @@ namespace CharmEdmxTools
                         tempoEsecuzioneFixs = sw.Elapsed;
                         //logger(string.Format(Messages.Current.SavedEdmxIn, sw.Elapsed));
                     }
+
                     logger(string.Format(Messages.Current.OperazioneTerminataSenzaModificheIn, tempoEsecuzioneFixs));
                 }
 
@@ -219,6 +222,10 @@ namespace CharmEdmxTools
             {
                 logger("ERROR: " + ex);
                 return false;
+            }
+            finally
+            {
+                Fixing = false;
             }
         }
 

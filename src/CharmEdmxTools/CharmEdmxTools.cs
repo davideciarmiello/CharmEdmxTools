@@ -19,7 +19,7 @@ namespace CharmEdmxTools
     /// <summary>
     /// Command handler
     /// </summary>
-    public sealed class CharmEdmxTools : IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents3, IDisposable
+    public sealed class CharmEdmxTools : IDisposable, IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents3
     {
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace CharmEdmxTools
 
             events = _invoker._dte2.Events;
             documentEvents = events.DocumentEvents;
-            //documentEvents.DocumentOpened += DocumentEventsOnDocumentOpened;
+            documentEvents.DocumentOpened += DocumentEventsOnDocumentOpened;
             documentEvents.DocumentClosing += DocumentEventsOnDocumentClosing;
             documentEvents.DocumentSaved += DocumentEventsOnDocumentSaved;
 
@@ -193,231 +193,59 @@ namespace CharmEdmxTools
             if (_invoker._dte2.SelectedItems.Count != 1)
                 return;
 
-            //var sscMgr = _invoker.GetSccManager();
-            //var x = sscMgr.GetType();
-            //System.Diagnostics.Debug.WriteLine(x.FullName);
-
-            //SourceControl sc = null;
-
-            //var file = @"C:\tfs\GRIN\dev\src\Gse.Grin.Platform.Solution\Gse.Grin.ReadModel.Notifiche\TA_GNE_GRIN_NEWS.cs";
-            //ProjectItem fileitem;
-            //foreach (SelectedItem dte2SelectedItem in _invoker._dte2.SelectedItems)
-            //{
-            //    var item = dte2SelectedItem.ProjectItem;
-            //    var fullPath = item.Properties.Item("FullPath").Value as string;
-            //    if (fullPath == file)
-            //        fileitem = item;
-            //    if (!System.IO.File.Exists(fullPath))
-            //        continue;
-            //    sc = item.DTE.SourceControl;
-            //    var isItemUnderScc = item.DTE.SourceControl.IsItemUnderSCC(fullPath);
-            //    var isItemCheckedOut = item.DTE.SourceControl.IsItemCheckedOut(fullPath);
-
-            //    var icons = new VsStateIcon[1];
-            //    var status = new uint[1];
-            //    var res = sscMgr.GetSccGlyph(1, new[] { fullPath }, icons, status);
-            //    if (res == VSConstants.S_FALSE && icons != null && icons.Length > 0 && icons[0] != VsStateIcon.STATEICON_BLANK)
-            //    {
-            //        // già è stato aggiunto
-            //        //continue;
-            //    }
-
-            //    var msg = fullPath + " - isItemUnderScc: " + isItemUnderScc + " isItemCheckedOut: " + isItemCheckedOut
-            //              + " GetSccGlyph: " + res + " icon: " + icons.FirstOrDefault();
-            //    System.Diagnostics.Debug.WriteLine(msg);
-            //}
-
-            ////fileitem.Document.
-
-            //var rexs = sc.CheckOutItem(file);
-
-            //IVsHierarchy solHier = this.ServiceProvider.GetService(typeof(SVsSolution)) as IVsHierarchy;
-
-            //IVsSccProject2 xx = solHier as IVsSccProject2;
-
-            //IVsSolution sol = (IVsSolution)this.ServiceProvider.GetService(typeof(SVsSolution));
-            //Guid rguidEnumOnlyThisType = new Guid();
-            //IEnumHierarchies ppenum = null;
-            //ErrorHandler.ThrowOnFailure(sol.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref rguidEnumOnlyThisType, out ppenum));
-            //var lst = new System.Collections.Generic.List<IVsSccProject2>();
-            //IVsHierarchy[] rgelt = new IVsHierarchy[1];
-            //uint pceltFetched = 0;
-            //while (ppenum.Next(1, rgelt, out pceltFetched) == VSConstants.S_OK &&
-            //       pceltFetched == 1)
-            //{
-            //    IVsSccProject2 sccProject2 = rgelt[0] as IVsSccProject2;
-            //    if (sccProject2 != null)
-            //    {
-            //        lst.Add(sccProject2);
-            //        //mapHierarchies[rgelt[0]] = true;
-            //    }
-            //}
-
-            //var xxx = lst[0] as IVsHierarchy;
-            //var tracker = lst[0] as IVsTrackProjectDocumentsEvents2;
-
-
-
-            ////tracker.OnAfterSccStatusChanged()
-
-            ////solHier.AdviseHierarchyEvents( )
-            ////_invoker._dte2.SelectedItems.Item(0).Project.
-
-            ////var sccService = ServiceProvider.GetService<SourceControlProvider>();
-
-            ////solHier.set
-
-            //return;
-
             var selectedItem = _invoker._dte2.SelectedItems.Item(1).ProjectItem;
             var id = menuCommand.CommandID.ID;
             _invoker.ExecEdmxFix(selectedItem, null, id);
         }
 
-
-        //public void OnConnection(object application, ext_ConnectMode connectMode, object addInInst, ref Array custom)
-        //{
-        //    _applicationObject = (DTE2)application;
-        //    _addInInstance = (AddIn)addInInst;
-
-        //    // the Addin project needs assembly references to Microsoft.VisualStudio.Shell, Microsoft.VisualStudio.Shell.Interop && Microsoft.VisualStudio.OLE.Interop
-        //    // any version should do
-
-        //}
-
-        public int OnQueryAddFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYADDFILEFLAGS[] rgFlags,
-            VSQUERYADDFILERESULTS[] pSummaryResult, VSQUERYADDFILERESULTS[] rgResults)
+        #region Eventi Apertura/chisura documento
+        private void DocumentEventsOnDocumentOpened(Document document)
         {
-            //var msg = "OnQueryAddFiles pProject:" + pProject + " file[0]:" + rgpszMkDocuments[0];
-            //Trace.WriteLine(msg);
-            //_invoker.GetOutputPaneWriteFunction()(msg);
-            return VSConstants.E_NOTIMPL;
+            if (document.FullName.EndsWith(FileExtensions.EntityDataModel, StringComparison.OrdinalIgnoreCase))
+                edmxOpened.AddOrUpdate(document.FullName, s => document, (s, document1) => document);
         }
 
-        public int OnAfterAddFilesEx(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices,
-            string[] rgpszMkDocuments, VSADDFILEFLAGS[] rgFlags)
+        private void DocumentEventsOnDocumentClosing(Document document)
         {
-            return VSConstants.E_NOTIMPL;
+            DocumentEventsOnDocumentSaved(document);
+            Document it;
+            edmxOpened.TryRemove(document.FullName, out it);
         }
+        #endregion
 
-        public int OnAfterAddDirectoriesEx(int cProjects, int cDirectories, IVsProject[] rgpProjects, int[] rgFirstIndices,
-            string[] rgpszMkDocuments, VSADDDIRECTORYFLAGS[] rgFlags)
+        #region Eventi salvataggio documento
+
+        int IVsRunningDocTableEvents3.OnBeforeSave(uint docCookie)
         {
-            return VSConstants.E_NOTIMPL;
-        }
+            if (edmxOpened.Count == 0)
+                return VSConstants.S_OK;
 
-        public int OnAfterRemoveFiles(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices,
-            string[] rgpszMkDocuments, VSREMOVEFILEFLAGS[] rgFlags)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            uint flags, readlocks, editlocks;
+            string name; IVsHierarchy hier;
+            uint itemid; IntPtr docData;
+            m_RDT.GetDocumentInfo(docCookie, out flags, out readlocks, out editlocks, out name, out hier, out itemid, out docData);
 
-        public int OnAfterRemoveDirectories(int cProjects, int cDirectories, IVsProject[] rgpProjects, int[] rgFirstIndices,
-            string[] rgpszMkDocuments, VSREMOVEDIRECTORYFLAGS[] rgFlags)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            if (name == null)
+                return VSConstants.S_OK;
 
-        public int OnQueryRenameFiles(IVsProject pProject, int cFiles, string[] rgszMkOldNames, string[] rgszMkNewNames,
-            VSQUERYRENAMEFILEFLAGS[] rgFlags, VSQUERYRENAMEFILERESULTS[] pSummaryResult, VSQUERYRENAMEFILERESULTS[] rgResults)
-        {
-            //IVsSccProject2 sccProject = pProject as IVsSccProject2;
+            if (!name.EndsWith(FileExtensions.EntityDataModel, StringComparison.OrdinalIgnoreCase))
+            {
+                return VSConstants.S_OK;
+            }
 
-
-            //IVsHierarchy pHier = pProject as IVsHierarchy;
-
-
-
-            //int iFound = 0;
-            //uint itemId = 0;
-            //VSDOCUMENTPRIORITY[] pdwPriority = new VSDOCUMENTPRIORITY[1];
-            //int result = pProject.IsDocumentInProject(rgszMkOldNames[0], out iFound, pdwPriority, out itemId);
-            //if (result != VSConstants.S_OK)
-            //    throw new Exception("Unexpected error calling IVsProject.IsDocumentInProject");
-            //if (iFound == 0)
-            //    throw new Exception("Cannot retrieve ProjectItem for template file");
-            //if (itemId == 0)
-            //    throw new Exception("Cannot retrieve ProjectItem for template file");
-
-
-            //Microsoft.VisualStudio.OLE.Interop.IServiceProvider itemContext = null;
-            //result = pProject.GetItemContext(itemId, out itemContext);
-            //if (result != VSConstants.S_OK)
-            //    throw new Exception("Unexpected error calling IVsProject.GetItemContext");
-            //if (itemContext == null)
-            //    throw new Exception("IVsProject.GetItemContext returned null");
-
-            //ServiceProvider itemContextService = new ServiceProvider(itemContext);
-            //EnvDTE.ProjectItem templateItem = (EnvDTE.ProjectItem)itemContextService.GetService(typeof(EnvDTE.ProjectItem));
-
-            //var fullPath = templateItem.Properties.Item("FullPath").Value as string;
-
-            //var fileNameS = templateItem.Name;
-
-            ////pHier.
-            //string projectName = null;
-            //if (sccProject == null)
-            //{
-            //    // This is the solution calling
-            //    pHier = (IVsHierarchy)this.ServiceProvider.GetService(typeof(SVsSolution));
-            //    //projectName = _sccProvider.GetSolutionFileName();
-            //}
-            //else
-            //{
-            //    // If the project doesn't support source control, it will be skipped
-            //    //if (sccProject != null)
-            //    //{
-            //    //    projectName = _sccProvider.GetProjectFileName(sccProject);
-            //    //}
-            //}
-
-            //var xxx = pProject as Project;
-
-            //var solution = this.ServiceProvider.GetService(typeof(SVsSolution)) as Solution2;
-            //var projItem = solution.FindProjectItem(rgszMkOldNames[0]);
-
-
-
-            //Trace.WriteLine("OnQueryRenameFiles pProject:" + pProject + " old[0]:" + rgszMkOldNames[0] + " new[0]:" + rgszMkNewNames[0]);
-
-            //pSummaryResult[0] = VSQUERYRENAMEFILERESULTS.VSQUERYRENAMEFILERESULTS_RenameOK;
-            //if (rgResults != null)
-            //{
-            //    for (int iFile = 0; iFile < cFiles; iFile++)
-            //    {
-            //        rgResults[iFile] = VSQUERYRENAMEFILERESULTS.VSQUERYRENAMEFILERESULTS_RenameOK;
-            //    }
-            //}
-
-            var res = VSConstants.E_NOTIMPL;
-            return res;
-        }
-
-        public int OnAfterRenameFiles(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices,
-            string[] rgszMkOldNames, string[] rgszMkNewNames, VSRENAMEFILEFLAGS[] rgFlags)
-        {
-
-            return VSConstants.E_NOTIMPL;
-        }
-
-        public int OnQueryRenameDirectories(IVsProject pProject, int cDirs, string[] rgszMkOldNames, string[] rgszMkNewNames,
-            VSQUERYRENAMEDIRECTORYFLAGS[] rgFlags, VSQUERYRENAMEDIRECTORYRESULTS[] pSummaryResult,
-            VSQUERYRENAMEDIRECTORYRESULTS[] rgResults)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
-
-        public int OnAfterRenameDirectories(int cProjects, int cDirs, IVsProject[] rgpProjects, int[] rgFirstIndices,
-            string[] rgszMkOldNames, string[] rgszMkNewNames, VSRENAMEDIRECTORYFLAGS[] rgFlags)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
-
-        public int OnQueryAddDirectories(IVsProject pProject, int cDirectories, string[] rgpszMkDocuments,
-            VSQUERYADDDIRECTORYFLAGS[] rgFlags, VSQUERYADDDIRECTORYRESULTS[] pSummaryResult,
-            VSQUERYADDDIRECTORYRESULTS[] rgResults)
-        {
-            return VSConstants.E_NOTIMPL;
+            var it = edmxSaving.AddOrUpdate(name, s => new SavingItemInfo(), (s, info) => new SavingItemInfo());
+            it.Document = _invoker._dte2.Documents.OfType<Document>().SingleOrDefault(x => x.FullName == name);
+            if (_invoker.Fixing == false)
+            {
+                string cfgCreated;
+                var cfg = _invoker.GetConfigForItem(null, it.Document, false, out cfgCreated);
+                if (cfg != null && cfg.AutoFixOnSave && cfgCreated == null)
+                {
+                    it.AutoFixed = _invoker.ExecAllFixsWithoutSave(it.Document);
+                }
+            }
+            //_invoker.GetOutputPaneWriteFunction()("OnBeforeSave name:" + name);
+            return VSConstants.S_OK;
         }
 
         private void DocumentEventsOnDocumentSaved(Document document)
@@ -437,21 +265,18 @@ namespace CharmEdmxTools
                 }
             }
         }
+        #endregion
 
-        private void DocumentEventsOnDocumentClosing(Document document)
-        {
-            DocumentEventsOnDocumentSaved(document);
-            //SavingItemInfo it;
-            //edmxSaving.TryRemove(document.FullName, out it);
-            //_invoker.GetOutputPaneWriteFunction()("DocumentEventsOnDocumentClosing doc:" + document.FullName);
-        }
+        #region Eventi su files durante elaborazione T4
 
-        public int OnQueryRemoveFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYREMOVEFILEFLAGS[] rgFlags,
+
+        int IVsTrackProjectDocumentsEvents2.OnQueryRemoveFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYREMOVEFILEFLAGS[] rgFlags,
             VSQUERYREMOVEFILERESULTS[] pSummaryResult, VSQUERYREMOVEFILERESULTS[] rgResults)
         {
             if (this.edmxSaving.Count == 0)
                 return VSConstants.S_OK;
 
+            //fix rimozione files: Avviene quando si elimina una colonna che fa parte di una Chiave
             for (var index = 0; index < rgpszMkDocuments.Length; index++)
             {
                 var rgpszMkDocument = rgpszMkDocuments[index];
@@ -462,9 +287,10 @@ namespace CharmEdmxTools
                 {
                     if (savingItemInfo.Value.XmlContent == null)
                     {
-                        var document = _invoker._dte2.Documents.OfType<Document>()
-                            .SingleOrDefault(x => x.FullName == savingItemInfo.Key);
-                        savingItemInfo.Value.XmlContent = EdmxFixInvoker.GetDocumentText(document);
+                        if (savingItemInfo.Value.Document == null)
+                            savingItemInfo.Value.Document = _invoker._dte2.Documents.OfType<Document>()
+                                .SingleOrDefault(x => x.FullName == savingItemInfo.Key);
+                        savingItemInfo.Value.XmlContent = EdmxFixInvoker.GetDocumentText(savingItemInfo.Value.Document);
                         savingItemInfo.Value.Path = new FileInfo(savingItemInfo.Key).Directory.FullName;
                     }
                     if (!rgpszMkDocument.StartsWith(savingItemInfo.Value.Path))
@@ -488,58 +314,108 @@ namespace CharmEdmxTools
                 }
             }
 
-            //var msg = "OnQueryRemoveFiles pProject:" + pProject + " - res: " + pSummaryResult[0] + " file[0]:" + rgpszMkDocuments[0];
-            //_invoker.GetOutputPaneWriteFunction()(msg);
-
-            //per non farlo proseguire, mettere su RemoveNotOK
-            //pSummaryResult[0] = VSQUERYREMOVEFILERESULTS.VSQUERYREMOVEFILERESULTS_RemoveNotOK;
-            //if (rgResults != null)
-            //{
-            //    for (int iFile = 0; iFile < cFiles; iFile++)
-            //    {
-            //        rgResults[iFile] = VSQUERYREMOVEFILERESULTS.VSQUERYREMOVEFILERESULTS_RemoveNotOK;
-            //    }
-            //}
-
-
-            //int iFound = 0;
-            //uint itemId = 0;
-            //VSDOCUMENTPRIORITY[] pdwPriority = new VSDOCUMENTPRIORITY[1];
-            //int result = pProject.IsDocumentInProject(rgpszMkDocuments[0], out iFound, pdwPriority, out itemId);
-            //if (result != VSConstants.S_OK)
-            //    throw new Exception("Unexpected error calling IVsProject.IsDocumentInProject");
-            //if (iFound == 0)
-            //    throw new Exception("Cannot retrieve ProjectItem for template file");
-            //if (itemId == 0)
-            //    throw new Exception("Cannot retrieve ProjectItem for template file");
-
-
-            //Microsoft.VisualStudio.OLE.Interop.IServiceProvider itemContext = null;
-            //result = pProject.GetItemContext(itemId, out itemContext);
-            //if (result != VSConstants.S_OK)
-            //    throw new Exception("Unexpected error calling IVsProject.GetItemContext");
-            //if (itemContext == null)
-            //    throw new Exception("IVsProject.GetItemContext returned null");
-
-            //ServiceProvider itemContextService = new ServiceProvider(itemContext);
-            //EnvDTE.ProjectItem templateItem = (EnvDTE.ProjectItem)itemContextService.GetService(typeof(EnvDTE.ProjectItem));
-
-            //var fullPath = templateItem.Properties.Item("FullPath").Value as string;
-
-            //var sc = templateItem.DTE.SourceControl;
-
             return VSConstants.S_OK;
         }
 
-        public int OnQueryRemoveDirectories(IVsProject pProject, int cDirectories, string[] rgpszMkDocuments,
+        #endregion
+
+        #region variabili e utils
+
+        private readonly ConcurrentDictionary<string, SavingItemInfo> edmxSaving = new ConcurrentDictionary<string, SavingItemInfo>();
+        private readonly ConcurrentDictionary<string, Document> edmxOpened = new ConcurrentDictionary<string, Document>();
+
+        private class SavingItemInfo
+        {
+            public string XmlContent { get; set; }
+            public string Path { get; set; }
+            public List<string> FilesNonEliminati { get; set; }
+            public Document Document { get; set; }
+            public bool AutoFixed { get; set; }
+        }
+        #endregion
+
+        #region Eventi IVsTrackProjectDocumentsEvents2
+
+        int IVsTrackProjectDocumentsEvents2.OnQueryAddFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYADDFILEFLAGS[] rgFlags,
+            VSQUERYADDFILERESULTS[] pSummaryResult, VSQUERYADDFILERESULTS[] rgResults)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsTrackProjectDocumentsEvents2.OnAfterAddFilesEx(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices,
+            string[] rgpszMkDocuments, VSADDFILEFLAGS[] rgFlags)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsTrackProjectDocumentsEvents2.OnAfterAddDirectoriesEx(int cProjects, int cDirectories, IVsProject[] rgpProjects, int[] rgFirstIndices,
+            string[] rgpszMkDocuments, VSADDDIRECTORYFLAGS[] rgFlags)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices,
+            string[] rgpszMkDocuments, VSREMOVEFILEFLAGS[] rgFlags)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsTrackProjectDocumentsEvents2.OnAfterRemoveDirectories(int cProjects, int cDirectories, IVsProject[] rgpProjects, int[] rgFirstIndices,
+            string[] rgpszMkDocuments, VSREMOVEDIRECTORYFLAGS[] rgFlags)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsTrackProjectDocumentsEvents2.OnQueryRenameFiles(IVsProject pProject, int cFiles, string[] rgszMkOldNames, string[] rgszMkNewNames,
+            VSQUERYRENAMEFILEFLAGS[] rgFlags, VSQUERYRENAMEFILERESULTS[] pSummaryResult, VSQUERYRENAMEFILERESULTS[] rgResults)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices,
+            string[] rgszMkOldNames, string[] rgszMkNewNames, VSRENAMEFILEFLAGS[] rgFlags)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsTrackProjectDocumentsEvents2.OnQueryRenameDirectories(IVsProject pProject, int cDirs, string[] rgszMkOldNames, string[] rgszMkNewNames,
+            VSQUERYRENAMEDIRECTORYFLAGS[] rgFlags, VSQUERYRENAMEDIRECTORYRESULTS[] pSummaryResult,
+            VSQUERYRENAMEDIRECTORYRESULTS[] rgResults)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsTrackProjectDocumentsEvents2.OnAfterRenameDirectories(int cProjects, int cDirs, IVsProject[] rgpProjects, int[] rgFirstIndices,
+            string[] rgszMkOldNames, string[] rgszMkNewNames, VSRENAMEDIRECTORYFLAGS[] rgFlags)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsTrackProjectDocumentsEvents2.OnQueryAddDirectories(IVsProject pProject, int cDirectories, string[] rgpszMkDocuments,
+            VSQUERYADDDIRECTORYFLAGS[] rgFlags, VSQUERYADDDIRECTORYRESULTS[] pSummaryResult,
+            VSQUERYADDDIRECTORYRESULTS[] rgResults)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsTrackProjectDocumentsEvents2.OnQueryRemoveDirectories(IVsProject pProject, int cDirectories, string[] rgpszMkDocuments,
             VSQUERYREMOVEDIRECTORYFLAGS[] rgFlags, VSQUERYREMOVEDIRECTORYRESULTS[] pSummaryResult,
             VSQUERYREMOVEDIRECTORYRESULTS[] rgResults)
         {
             return VSConstants.E_NOTIMPL;
         }
 
-        public int OnAfterSccStatusChanged(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices,
+        int IVsTrackProjectDocumentsEvents2.OnAfterSccStatusChanged(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices,
             string[] rgpszMkDocuments, uint[] rgdwSccStatus)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        #endregion
+
+        #region eventi IVsRunningDocTableEvents
+        int IVsRunningDocTableEvents3.OnAfterAttributeChangeEx(uint docCookie, uint grfAttribs, IVsHierarchy pHierOld, uint itemidOld,
+            string pszMkDocumentOld, IVsHierarchy pHierNew, uint itemidNew, string pszMkDocumentNew)
         {
             return VSConstants.E_NOTIMPL;
         }
@@ -573,53 +449,6 @@ namespace CharmEdmxTools
         int IVsRunningDocTableEvents3.OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
         {
             return VSConstants.E_NOTIMPL;
-        }
-
-        int IVsRunningDocTableEvents3.OnAfterAttributeChangeEx(uint docCookie, uint grfAttribs, IVsHierarchy pHierOld, uint itemidOld,
-            string pszMkDocumentOld, IVsHierarchy pHierNew, uint itemidNew, string pszMkDocumentNew)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
-
-        public int OnBeforeSave(uint docCookie)
-        {
-            if (_invoker._dte2.SourceControl == null)
-                return VSConstants.S_OK;
-
-            uint flags, readlocks, editlocks;
-            string name; IVsHierarchy hier;
-            uint itemid; IntPtr docData;
-            m_RDT.GetDocumentInfo(docCookie, out flags, out readlocks, out editlocks, out name, out hier, out itemid, out docData);
-
-            if (name == null)
-                return VSConstants.E_NOTIMPL;
-
-            if (!name.EndsWith(".edmx", StringComparison.OrdinalIgnoreCase))
-            {
-                return VSConstants.S_OK;
-            }
-
-            var it = edmxSaving.AddOrUpdate(name, s => new SavingItemInfo(), (s, info) => new SavingItemInfo());
-            it.Document = _invoker._dte2.Documents.OfType<Document>().SingleOrDefault(x => x.FullName == name);
-            string cfgCreated;
-            var cfg = _invoker.GetConfigForItem(null, it.Document, false, out cfgCreated);
-            if (cfg != null && cfg.AutoFixOnSave && cfgCreated == null)
-            {
-                it.AutoFixed = _invoker.ExecAllFixsWithoutSave(it.Document);
-            }
-            //_invoker.GetOutputPaneWriteFunction()("OnBeforeSave name:" + name);
-            return VSConstants.S_OK;
-        }
-
-        private readonly ConcurrentDictionary<string, SavingItemInfo> edmxSaving = new ConcurrentDictionary<string, SavingItemInfo>();
-
-        private class SavingItemInfo
-        {
-            public string XmlContent { get; set; }
-            public string Path { get; set; }
-            public List<string> FilesNonEliminati { get; set; }
-            public Document Document { get; set; }
-            public bool AutoFixed { get; set; }
         }
 
         int IVsRunningDocTableEvents3.OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
@@ -689,19 +518,6 @@ namespace CharmEdmxTools
         {
             return VSConstants.E_NOTIMPL;
         }
-
-
-        public Project GetProject(IVsHierarchy hierarchy)
-        {
-            object project;
-
-            ErrorHandler.ThrowOnFailure
-            (hierarchy.GetProperty(
-                VSConstants.VSITEMID_ROOT,
-                (int)__VSHPROPID.VSHPROPID_ExtObject,
-                out project));
-
-            return (project as Project);
-        }
+        #endregion
     }
 }
