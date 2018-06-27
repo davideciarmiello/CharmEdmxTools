@@ -227,7 +227,7 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
 
             if (versionLower(6))
             {
-                cfg.AutoFixOnSave = true;
+                cfg.AutoFixOnSave = false;
             }
 
             if (cfg.Version >= maxVersion)
