@@ -132,10 +132,18 @@ namespace CharmEdmxTools
             /*T4: {1496A755-94DE-11D0-8C3F-00C04FC2AAE2} - id:1117 - name:Project.RunCustomTool*/
             if (i == 1627 || i == 1990 || i == 684 || i == 1628)
                 return;
-            var cmd = this._invoker._dte2.Commands.Item(guid, i);
-            if (cmd == null)
-                return;
-            _invoker.GetOutputPaneWriteFunction()("CommandEventsOnBeforeExecute doc:" + guid + " - id:" + i + " - name:" + cmd.Name);
+            try
+            {
+                var cmd = this._invoker._dte2.Commands.Item(guid, i);
+                if (cmd == null)
+                    return;
+                _invoker.GetOutputPaneWriteFunction(focus: false)("CommandEventsOnBeforeExecute doc:" + guid + " - id:" + i +
+                                                      " - name:" + cmd.Name);
+            }
+            catch (Exception)
+            {
+
+            }
         }
 
         public void Dispose()
@@ -250,6 +258,8 @@ namespace CharmEdmxTools
 
         private void DocumentEventsOnDocumentSaved(Document document)
         {
+            if (document == null)
+                return;
             SavingItemInfo it;
             if (edmxSaving.TryRemove(document.FullName, out it))
             {

@@ -333,7 +333,7 @@ namespace CharmEdmxTools
         //    return false;
         //}
 
-        public Action<string> GetOutputPaneWriteFunction(string name = "Charm Edmx Tools", Guid? guid = null)
+        public Action<string> GetOutputPaneWriteFunction(string name = "Charm Edmx Tools", Guid? guid = null, bool focus = true)
         {
             var customPane = _dte2.ToolWindows.OutputWindow.OutputWindowPanes.OfType<OutputWindowPane>().FirstOrDefault(it => it.Name == name);
             if (customPane == null)
@@ -360,7 +360,8 @@ namespace CharmEdmxTools
                 //     toActivate = false;
                 //}
                 outputPane.OutputString(s + Environment.NewLine);
-                outputPane.Activate();
+                if (focus)
+                    outputPane.Activate();
             });
         }
 

@@ -38,6 +38,8 @@ namespace CharmEdmxTools.Console
             edmxFileName = cfgFileName.Replace("Gse.Grin.Platform.Solution.sln.CharmEdmxTools",
                 @"Gse.Grin.ReadModel.Anagrafica\GrinAnagraficaReadEntities.edmx");
             //edmxFileName = @"C:\Davide\ProgettiGit\CharmEdmxTools\BiocarEntitiesModel.edmx";
+            edmxFileName = @"D:\temp\SibicoDB.edmx";
+            cfgFileName = @"D:\Progetti\Gdf\Sibico2\Sibico.sln.CharmEdmxTools";
             var cfg = CharmEdmxConfiguration.Load(cfgFileName);
             //var xdoc = XDocument.Load(edmxFileName);
             //var x = new EdmxContainerNew(xdoc);

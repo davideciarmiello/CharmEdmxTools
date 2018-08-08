@@ -203,7 +203,7 @@ namespace CharmEdmxTools.Core.Containers
 
         private void FillNavigationProperties(List<EntityRelation> entities)
         {
-            var assocationsPerName = this.Associations.ToConcurrentDictionary(x => x.Conceptual.Name);
+            var assocationsPerName = this.Associations.Where(x => x.Conceptual != null).ToConcurrentDictionary(x => x.Conceptual.Name);
 
             foreach (var entity in entities.Where(x => x.Conceptual != null))
             {
