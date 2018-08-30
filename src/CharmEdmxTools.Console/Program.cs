@@ -4,11 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using System.Xml.Serialization;
-using AppCodeShared;
 using CharmEdmxTools.Core.EdmxConfig;
 using CharmEdmxTools.Core.Manager;
-using Microsoft.TeamFoundation.Client;
-using Microsoft.TeamFoundation.VersionControl.Client;
 
 namespace CharmEdmxTools.Console
 {
@@ -169,12 +166,12 @@ namespace CharmEdmxTools.Console
 
         static void TestTfs()
         {
-            var fullPath = @"C:\tfs\GRIN\dev-rin1\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\TA_ACC_ACTION_CONTROL.cs";
-            var proj = new FileInfo(@"C:\tfs\GRIN\dev-rin1\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\Gse.Grin.DataBaseContext.EF.csproj");
-            var tfsHelper = new TfsHelper(proj.FullName);
-            tfsHelper.Connect();
-            tfsHelper.PendAdd(fullPath);
-            tfsHelper.Close();
+            //var fullPath = @"C:\tfs\GRIN\dev-rin1\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\TA_ACC_ACTION_CONTROL.cs";
+            //var proj = new FileInfo(@"C:\tfs\GRIN\dev-rin1\src\Gse.Grin.Platform.Solution\Gse.Grin.DataBaseContext.EF\Gse.Grin.DataBaseContext.EF.csproj");
+            //var tfsHelper = new TfsHelper(proj.FullName);
+            //tfsHelper.Connect();
+            //tfsHelper.PendAdd(fullPath);
+            //tfsHelper.Close();
         }
 
     }
