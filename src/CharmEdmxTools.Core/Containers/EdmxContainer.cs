@@ -166,12 +166,12 @@ namespace CharmEdmxTools.Core.Containers
             var itemsManaged = new HashSet<BaseItem>();
 
             var properties = entity.Properties = new List<PropertyRelation>();
-            var propMappingPerStorageColumnName = entity.Mapping.Descendants<ScalarProperty>().ToConcurrentDictionary(x => x.ColumnName);
+            var propMappingPerStorageColumnName = entity.Mapping.Descendants<ScalarProperty>().ToConcurrentDictionaryDistinctOrRemove(x => x.ColumnName);
             var storageKeys = entity.Storage.Descendants<Key>().Take(1).SelectMany(it => it.Descendants<PropertyRef>())
-                .ToConcurrentDictionary(x => x.Name);
-            var conceptualProperties = entity.Conceptual.Properties.ToConcurrentDictionary(x => x.Name);
+                .ToConcurrentDictionaryDistinctOrRemove(x => x.Name);
+            var conceptualProperties = entity.Conceptual.Properties.ToConcurrentDictionaryDistinctOrRemove(x => x.Name);
             var conceptualKeys = entity.Conceptual.Descendants<Key>().Take(1).SelectMany(it => it.Descendants<PropertyRef>())
-                .ToConcurrentDictionary(x => x.Name);
+                .ToConcurrentDictionaryDistinctOrRemove(x => x.Name);
 
             foreach (var property in entity.Storage.Properties)
             {

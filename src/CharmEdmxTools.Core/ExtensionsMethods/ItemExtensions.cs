@@ -87,6 +87,15 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
                 return res;
             return default(TSource);
         }
+        public static IEnumerable<TSource> GetItemsByKeyOrAll<TSource>(this ConcurrentDictionary<string, TSource> source, string keySelector)
+        {
+            if (string.IsNullOrWhiteSpace(keySelector) || keySelector == "*")
+                return source.Values;
+            TSource res;
+            if (source.TryGetValue(keySelector, out res))
+                return Enumerable.Repeat(res, 1);
+            return Enumerable.Empty<TSource>();
+        }
         public static TSource GetOrNull<TSource, TKey>(this Dictionary<TKey, TSource> source, TKey keySelector)
         {
             TSource res;
@@ -106,6 +115,19 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
             return new ConcurrentDictionary<TKey, TElement>(source.ToDictionary(keySelector, elementSelector));
         }
 
+        public static ConcurrentDictionary<TKey, TSource> ToConcurrentDictionaryDistinctOrRemove<TSource, TKey>(
+            this IEnumerable<TSource> source, Func<TSource, TKey> keySelector) where TSource : BaseItem
+        {
+            var res = new ConcurrentDictionary<TKey, TSource>();
+            foreach (var it in source)
+            {
+                var key = keySelector(it);
+                if (res.TryAdd(key, it) == false)
+                    it.Remove();
+            }
+            return res;
+        }
+
 
         public static bool EqualsInvariant(this string a, string b)
         {
@@ -117,11 +139,16 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
             var lst = items.ToList();
             foreach (var item in lst)
             {
-                if (item != null && item.XNode.Parent != null)
-                {
-                    item.XNode.Remove();
-                    item.IsDeleted = true;
-                }
+                Remove(item);
+            }
+        }
+
+        public static void Remove(this BaseItem item)
+        {
+            if (item != null && item.XNode.Parent != null)
+            {
+                item.XNode.Remove();
+                item.IsDeleted = true;
             }
         }
 
@@ -228,6 +255,13 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
             if (versionLower(6))
             {
                 cfg.AutoFixOnSave = false;
+            }
+
+            if (versionLower(7))
+            {
+                if (cfg.ManualOperations == null)
+                    cfg.ManualOperations = new List<ManualOperation>();
+                cfg.ManualOperations.Add(new ManualOperation() { TableName = "", FieldName = "RowVersion", Type = ManualOperationType.SetConceptualFieldAttribute, AttributeName = "ConcurrencyMode", AttributeValue = "Fixed" });
             }
 
             if (cfg.Version >= maxVersion)

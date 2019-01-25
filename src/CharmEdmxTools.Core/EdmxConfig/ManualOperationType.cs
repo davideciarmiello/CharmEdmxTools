@@ -5,5 +5,6 @@
         RemoveField,
         RemoveAssociation,
         SetFieldAttribute,
+        SetConceptualFieldAttribute,
     }
 }

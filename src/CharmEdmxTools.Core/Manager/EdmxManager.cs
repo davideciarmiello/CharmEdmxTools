@@ -70,48 +70,14 @@ namespace CharmEdmxTools.Core.Manager
             if (_config.ManualOperations.All(x => x.TableName == "TABLE_TEST" || x.AssociationName == "FK_TEST"))
                 return;
             var storageModelsEntityType = _edmx.Entities.Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name);
-            var storageAssociations = _edmx.Associations.Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name);
+
+
             var dictRes = new ConcurrentDictionary<string, List<string>>();
-            foreach (var operation in _config.ManualOperations)
+            var removeAssociationOperations = _config.ManualOperations.Where(x => x.Type == ManualOperationType.RemoveAssociation).ToList();
+            if (removeAssociationOperations.Any())
             {
-                var op = operation.Type;
-                if (op == ManualOperationType.RemoveField || op == ManualOperationType.SetFieldAttribute)
-                {
-                    var storageEntityType = storageModelsEntityType.GetOrNull(operation.TableName);
-                    if (storageEntityType == null)
-                        continue;
-                    var storageProp = storageEntityType.PropertiesPerStorageName.GetOrNull(operation.FieldName);
-                    if (storageProp == null)
-                        continue;
-                    if (op == ManualOperationType.RemoveField)
-                    {
-                        storageProp.Remove(_edmx);
-                        dictRes.GetOrAddNew(operation.TableName + "." + operation.FieldName).Add("Field Deleted");
-                    }
-                    else if (op == ManualOperationType.SetFieldAttribute)
-                    {
-                        if (operation.AttributeValue != null)
-                        {
-                            var attrValue = storageProp.Storage.XNode.GetAttribute(operation.AttributeName);
-                            if (attrValue != operation.AttributeValue)
-                            {
-                                storageProp.Storage.XNode.SetAttributeValue(operation.AttributeName,
-                                    operation.AttributeValue);
-                                dictRes.GetOrAddNew(operation.TableName + "." + operation.FieldName).Add(operation.AttributeName + " [" + attrValue + "] -> [" + operation.AttributeValue + "]");
-                            }
-                        }
-                        else
-                        {
-                            var attrib = storageProp.Storage.XNode.Attribute(operation.AttributeName);
-                            if (attrib != null)
-                            {
-                                attrib.Remove();
-                                dictRes.GetOrAddNew(operation.TableName + "." + operation.FieldName).Add("Deleted attr " + operation.AttributeName);
-                            }
-                        }
-                    }
-                }
-                else if (op == ManualOperationType.RemoveAssociation)
+                var storageAssociations = _edmx.Associations.Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name);
+                foreach (var operation in removeAssociationOperations)
                 {
                     var association = storageAssociations.GetOrNull(operation.AssociationName);
                     if (association == null)
@@ -119,6 +85,42 @@ namespace CharmEdmxTools.Core.Manager
                     association.Remove(_edmx);
                     dictRes.GetOrAddNew(operation.AssociationName).Add("FK Deleted");
                 }
+            }
+
+            foreach (var operation in _config.ManualOperations.Except(removeAssociationOperations))
+            {
+                var op = operation.Type;
+                foreach (var storageEntityType in storageModelsEntityType.GetItemsByKeyOrAll(operation.TableName))
+                    foreach (var storageProp in storageEntityType.PropertiesPerStorageName.GetItemsByKeyOrAll(operation.FieldName))
+                    {
+                        if (op == ManualOperationType.RemoveField)
+                        {
+                            storageProp.Remove(_edmx);
+                            dictRes.GetOrAddNew(storageEntityType.Storage.Name + "." + storageProp.Storage.Name).Add("Field Deleted");
+                        }
+                        else if (op == ManualOperationType.SetFieldAttribute || op == ManualOperationType.SetConceptualFieldAttribute)
+                        {
+                            var xnode = op == ManualOperationType.SetFieldAttribute ? storageProp.Storage.XNode : storageProp.Conceptual.XNode;
+                            if (operation.AttributeValue != null)
+                            {
+                                var attrValue = xnode.GetAttribute(operation.AttributeName);
+                                if (attrValue != operation.AttributeValue)
+                                {
+                                    xnode.SetAttributeValue(operation.AttributeName, operation.AttributeValue);
+                                    dictRes.GetOrAddNew(storageEntityType.Storage.Name + "." + storageProp.Storage.Name).Add(operation.AttributeName + " [" + attrValue + "] -> [" + operation.AttributeValue + "]");
+                                }
+                            }
+                            else
+                            {
+                                var attrib = xnode.Attribute(operation.AttributeName);
+                                if (attrib != null)
+                                {
+                                    attrib.Remove();
+                                    dictRes.GetOrAddNew(storageEntityType.Storage.Name + "." + storageProp.Storage.Name).Add("Deleted attr " + operation.AttributeName);
+                                }
+                            }
+                        }
+                    }
             }
 
             foreach (var dictRe in dictRes)
