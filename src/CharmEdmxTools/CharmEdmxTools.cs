@@ -110,11 +110,11 @@ namespace CharmEdmxTools
             documentEvents.DocumentClosing += DocumentEventsOnDocumentClosing;
             documentEvents.DocumentSaved += DocumentEventsOnDocumentSaved;
 
-            if (System.Diagnostics.Debugger.IsAttached)
-            {
-                commandEvents = events.CommandEvents;
-                commandEvents.BeforeExecute += CommandEventsOnBeforeExecute;
-            }
+            //if (System.Diagnostics.Debugger.IsAttached)
+            //{
+            //    commandEvents = events.CommandEvents;
+            //    commandEvents.BeforeExecute += CommandEventsOnBeforeExecute;
+            //}
             //events.TextEditorEvents.LineChanged += TextEditorEventsOnLineChanged;
             //events.SolutionItemsEvents.ItemRemoved += SolutionItemsEventsOnItemRemoved;
             //var doctracker = (IVsRunningDocTableEvents3)this.ServiceProvider.GetService(typeof(SVsTrackProjectDocuments));
@@ -127,24 +127,24 @@ namespace CharmEdmxTools
 
 
 
-        private void CommandEventsOnBeforeExecute(string guid, int i, object customIn, object customOut, ref bool cancelDefault)
-        {
-            /*T4: {1496A755-94DE-11D0-8C3F-00C04FC2AAE2} - id:1117 - name:Project.RunCustomTool*/
-            if (i == 1627 || i == 1990 || i == 684 || i == 1628)
-                return;
-            try
-            {
-                var cmd = this._invoker._dte2.Commands.Item(guid, i);
-                if (cmd == null)
-                    return;
-                _invoker.GetOutputPaneWriteFunction(focus: false)("CommandEventsOnBeforeExecute doc:" + guid + " - id:" + i +
-                                                      " - name:" + cmd.Name);
-            }
-            catch (Exception)
-            {
+        //private void CommandEventsOnBeforeExecute(string guid, int i, object customIn, object customOut, ref bool cancelDefault)
+        //{
+        //    /*T4: {1496A755-94DE-11D0-8C3F-00C04FC2AAE2} - id:1117 - name:Project.RunCustomTool*/
+        //    if (i == 1627 || i == 1990 || i == 684 || i == 1628)
+        //        return;
+        //    try
+        //    {
+        //        var cmd = this._invoker._dte2.Commands.Item(guid, i);
+        //        if (cmd == null)
+        //            return;
+        //        _invoker.GetOutputPaneWriteFunction(focus: false)("CommandEventsOnBeforeExecute doc:" + guid + " - id:" + i +
+        //                                              " - name:" + cmd.Name);
+        //    }
+        //    catch (Exception)
+        //    {
 
-            }
-        }
+        //    }
+        //}
 
         public void Dispose()
         {
@@ -209,12 +209,16 @@ namespace CharmEdmxTools
         #region Eventi Apertura/chisura documento
         private void DocumentEventsOnDocumentOpened(Document document)
         {
+            if (document == null)
+                return;
             if (document.FullName.EndsWith(FileExtensions.EntityDataModel, StringComparison.OrdinalIgnoreCase))
                 edmxOpened.AddOrUpdate(document.FullName, s => document, (s, document1) => document);
         }
 
         private void DocumentEventsOnDocumentClosing(Document document)
         {
+            if (document == null)
+                return;
             DocumentEventsOnDocumentSaved(document);
             Document it;
             edmxOpened.TryRemove(document.FullName, out it);
