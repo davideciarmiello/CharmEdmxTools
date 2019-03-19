@@ -171,7 +171,13 @@ namespace CharmEdmxTools
                     sw.Stop();
                     logger(string.Format(Messages.Current.OperazioneTerminataConSuccessoIn, sw.Elapsed));
                     if (windowOpened == null && !skipSave)
+                    {
                         mgr.Salva();
+                        //fix chiudo e riapro il documento, altrimenti se rifaccio aggiorna edmx va in errore
+                        edmxDocument.Close(vsSaveChanges.vsSaveChangesNo);
+                        windowOpened = _dte2.ItemOperations.OpenFile(edmxPath);
+                        edmxDocument = windowOpened.Document;
+                    }
                 }
                 else
                 {
