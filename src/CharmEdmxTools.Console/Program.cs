@@ -37,6 +37,7 @@ namespace CharmEdmxTools.Console
             //edmxFileName = @"C:\Davide\ProgettiGit\CharmEdmxTools\BiocarEntitiesModel.edmx";
             edmxFileName = @"D:\temp\SibicoDB.edmx";
             cfgFileName = @"D:\Progetti\Gdf\Sibico2\Sibico.sln.CharmEdmxTools";
+            cfgFileName = @"D:\Progetti\Gdf\SoaGdf\SOAGDF.sln.CharmEdmxTools";
             var cfg = CharmEdmxConfiguration.Load(cfgFileName);
             //var xdoc = XDocument.Load(edmxFileName);
             //var x = new EdmxContainerNew(xdoc);

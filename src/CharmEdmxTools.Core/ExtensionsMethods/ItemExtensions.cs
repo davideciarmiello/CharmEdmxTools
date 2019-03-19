@@ -264,6 +264,13 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
                 cfg.ManualOperations.Add(new ManualOperation() { TableName = "", FieldName = "RowVersion", Type = ManualOperationType.SetConceptualFieldAttribute, AttributeName = "ConcurrencyMode", AttributeValue = "Fixed" });
             }
 
+            if (versionLower(8))
+            {
+                var sql = GetEdmMappingConfigurationSql();
+                cfg.EdmMappingConfigurations.Where(x => x.ProviderName == "System.Data.EntityClient").ToList().ForEach(x => x.ProviderName = sql.ProviderName);
+                cfg.EdmMappingConfigurations.AddIfNotExists(sql);
+            }
+
             if (cfg.Version >= maxVersion)
                 return false;
             cfg.Version = maxVersion;
@@ -273,7 +280,7 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
         private static edmMappingConfiguration GetEdmMappingConfigurationSql()
         {
             var at = new AttributeTrasformationHelper();
-            var res = new edmMappingConfiguration() { ProviderName = "System.Data.EntityClient" };
+            var res = new edmMappingConfiguration() { ProviderName = "System.Data.SqlClient" };
             res.edmMappings.Add(new edmMapping("guid raw", at.New("Type", "Guid"), at.New("MaxLength;FixedLength;Unicode;", "")));
             res.edmMappings.Add(new edmMapping("date", at.New("Type", "DateTime"), at.New("MaxLength;FixedLength;Unicode;", "")));
             res.edmMappings.Add(new edmMapping("char;nchar;varchar;nvarchar", at.New("Type", "String"), new AttributeTrasformation("MaxLength", null) { ValueStorageAttributeName = "MaxLength" }));

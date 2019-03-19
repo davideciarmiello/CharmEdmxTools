@@ -13,6 +13,7 @@
         public virtual string OperazioneTerminataSenzaModificheIn { get { return "Operation terminated. There was no modification in {0}."; } }
         public virtual string AvvioVerificaFilesSourceControl { get { return "Starting check of added files at Source Control."; } }
         public virtual string AggiuntoFileASourceControl { get { return "Added file '{0}' to Source Control."; } }
+        public string EdmMappingConfigurationNotFound { get { return "EdmMappingConfiguration not found for provider '{0}'."; } }
         public virtual string EseguitoFixPropertiesAttributes { get { return "Executed FixPropertiesAttributes on '{0}.{1}' - {2}"; } }
         public virtual string ErroreFixPropertiesAttributes { get { return "ERROR: FixPropertiesAttributes - Type {0} not managed"; } }
         public virtual string AvvioClearEdmxPreservingKeyFields { get { return "Starting ClearEdmxPreservingKeyFields: all non-key fields will be deleted."; } }

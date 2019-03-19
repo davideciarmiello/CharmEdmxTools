@@ -13,6 +13,7 @@
         public string OperazioneTerminataSenzaModificheIn { get { return "Operazione terminata. Non è stata apportata nessuna modifica in {0}."; } }
         public string AvvioVerificaFilesSourceControl { get { return "Avvio verifica dei files aggiunti al Source Control."; } }
         public string AggiuntoFileASourceControl { get { return "Aggiunto file '{0}' a SourceControl."; } }
+        public string EdmMappingConfigurationNotFound { get { return "EdmMappingConfiguration non trovato per il provider '{0}'."; } }
         public string EseguitoFixPropertiesAttributes { get { return "Eseguito FixPropertiesAttributes su '{0}.{1}' - {2}"; } }
         public string ErroreFixPropertiesAttributes { get { return "ERRORE: FixPropertiesAttributes - Tipo {0} non gestito"; } }
         public string AvvioClearEdmxPreservingKeyFields { get { return "Avvio di ClearEdmxPreservingKeyFields: tutti i campi non key verranno eliminati."; } }

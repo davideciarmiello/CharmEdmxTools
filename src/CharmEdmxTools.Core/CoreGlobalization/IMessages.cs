@@ -19,6 +19,7 @@ namespace CharmEdmxTools.Core.CoreGlobalization
         string OperazioneTerminataSenzaModificheIn { get; }
         string AvvioVerificaFilesSourceControl { get; }
         string AggiuntoFileASourceControl { get; }
+        string EdmMappingConfigurationNotFound { get; }
         string EseguitoFixPropertiesAttributes { get; }
         string ErroreFixPropertiesAttributes { get; }
         string AvvioClearEdmxPreservingKeyFields { get; }

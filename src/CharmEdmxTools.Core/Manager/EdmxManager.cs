@@ -277,13 +277,16 @@ namespace CharmEdmxTools.Core.Manager
 
         public void FixPropertiesAttributes()
         {
-            var provider = _edmx.storageModels.Schema.Attribute("Provider");
-            if (provider == null || string.IsNullOrEmpty(provider.Value))
+            var provider = _edmx.storageModels.Schema.Attribute("Provider")?.Value;
+            if (string.IsNullOrEmpty(provider))
                 return;
 
-            var dynamicProvider = _config.EdmMappingConfigurations.FirstOrDefault(it => provider.Value.StartsWith(it.ProviderName));
+            var dynamicProvider = _config.EdmMappingConfigurations.FirstOrDefault(it => provider.StartsWith(it.ProviderName));
             if (dynamicProvider == null)
+            {
+                _logger(string.Format(Messages.Current.EdmMappingConfigurationNotFound, provider));
                 return;
+            }
             var dt = new Lazy<DataTable>(() => new DataTable());
             foreach (var conceptualEntityType in _edmx.Entities.Where(x => x.Storage != null && x.Conceptual != null))
             {
