@@ -1,1 +1,3 @@
 Per VS2013, installare Security Protocol Manager 2013 e abilitare il protocollo TLS1.2
+
+ALTER DATABASE database_name SET COMPATIBILITY_LEVEL = 110

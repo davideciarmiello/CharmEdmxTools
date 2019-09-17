@@ -128,10 +128,7 @@ namespace CharmEdmxTools.Core.Containers
                 }
             }
 
-            foreach (var entityRelation in Entities.Where(x => x.Storage != null && x.Conceptual != null))
-            {
-                FillProperties(entityRelation);
-            }
+            FillProperties(Entities);
 
             FillNavigationProperties(Entities);
 
@@ -161,42 +158,47 @@ namespace CharmEdmxTools.Core.Containers
         }
 
 
-        private void FillProperties(EntityRelation entity)
+        private void FillProperties(List<EntityRelation> entities)
         {
-            var itemsManaged = new HashSet<BaseItem>();
-
-            var properties = entity.Properties = new List<PropertyRelation>();
-            var propMappingPerStorageColumnName = entity.Mapping.Descendants<ScalarProperty>().ToConcurrentDictionaryDistinctOrRemove(x => x.ColumnName);
-            var storageKeys = entity.Storage.Descendants<Key>().Take(1).SelectMany(it => it.Descendants<PropertyRef>())
-                .ToConcurrentDictionaryDistinctOrRemove(x => x.Name);
-            var conceptualProperties = entity.Conceptual.Properties.ToConcurrentDictionaryDistinctOrRemove(x => x.Name);
-            var conceptualKeys = entity.Conceptual.Descendants<Key>().Take(1).SelectMany(it => it.Descendants<PropertyRef>())
-                .ToConcurrentDictionaryDistinctOrRemove(x => x.Name);
-
-            foreach (var property in entity.Storage.Properties)
+            foreach (var entity in entities.Where(x => x.Storage != null))
             {
-                var prop = new PropertyRelation();
-                properties.Add(prop);
-                prop.Storage = property;
-                prop.StorageKey = storageKeys.GetOrNull(prop.Storage.Name);
-                prop.ScalarProperty = propMappingPerStorageColumnName[prop.Storage.Name];
-                prop.Conceptual = conceptualProperties.GetOrNull(prop.ScalarProperty.Name).Add(itemsManaged);
-                if (prop.Conceptual == null)
-                    continue;
-                prop.ConceptualKey = conceptualKeys.GetOrNull(prop.Conceptual.Name);
-            }
+                var itemsManaged = new HashSet<BaseItem>();
 
-            var conceptualOrfani = conceptualProperties.Values.Except(itemsManaged).Cast<Property>().ToList();
-            if (conceptualOrfani.Any())
-            {
-                var propMappingPerConceptualColumnName = propMappingPerStorageColumnName.Values.ToConcurrentDictionary(x => x.Name);
-                foreach (var property in conceptualOrfani)
+                var properties = entity.Properties = new List<PropertyRelation>();
+                var propMappingPerStorageColumnName = (entity.Mapping?.Descendants<ScalarProperty>().ToConcurrentDictionaryDistinctOrRemove(x => x.ColumnName)).GetOrNew();
+                var storageKeys = entity.Storage.Descendants<Key>().Take(1).SelectMany(it => it.Descendants<PropertyRef>())
+                    .ToConcurrentDictionaryDistinctOrRemove(x => x.Name);
+                var conceptualProperties = (entity.Conceptual?.Properties.ToConcurrentDictionaryDistinctOrRemove(x => x.Name)).GetOrNew();
+                var conceptualKeys = (entity.Conceptual?.Descendants<Key>().Take(1).SelectMany(it => it.Descendants<PropertyRef>())
+                    .ToConcurrentDictionaryDistinctOrRemove(x => x.Name)).GetOrNew();
+
+                foreach (var property in entity.Storage.Properties)
                 {
                     var prop = new PropertyRelation();
                     properties.Add(prop);
-                    prop.Conceptual = property;
+                    prop.Storage = property;
+                    prop.StorageKey = storageKeys.GetOrNull(prop.Storage.Name);
+                    prop.ScalarProperty = propMappingPerStorageColumnName.GetOrNull(prop.Storage.Name);
+                    if (prop.ScalarProperty == null)
+                        continue;
+                    prop.Conceptual = conceptualProperties.GetOrNull(prop.ScalarProperty.Name).Add(itemsManaged);
+                    if (prop.Conceptual == null)
+                        continue;
                     prop.ConceptualKey = conceptualKeys.GetOrNull(prop.Conceptual.Name);
-                    prop.ScalarProperty = propMappingPerConceptualColumnName.GetOrNull(prop.Conceptual.Name);
+                }
+
+                var conceptualOrfani = conceptualProperties.Values.Except(itemsManaged).Cast<Property>().ToList();
+                if (conceptualOrfani.Any())
+                {
+                    var propMappingPerConceptualColumnName = propMappingPerStorageColumnName.Values.ToConcurrentDictionary(x => x.Name);
+                    foreach (var property in conceptualOrfani)
+                    {
+                        var prop = new PropertyRelation();
+                        properties.Add(prop);
+                        prop.Conceptual = property;
+                        prop.ConceptualKey = conceptualKeys.GetOrNull(prop.Conceptual.Name);
+                        prop.ScalarProperty = propMappingPerConceptualColumnName.GetOrNull(prop.Conceptual.Name);
+                    }
                 }
             }
         }

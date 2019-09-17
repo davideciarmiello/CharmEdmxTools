@@ -11,6 +11,24 @@ namespace CharmEdmxTools.Core.ExtensionsMethods
 {
     public static class ItemExtensions
     {
+        public static string Join(this IEnumerable<string> source, string separator, string resultIfSourceEmpty = "")
+        {
+            if (resultIfSourceEmpty != "")
+            {
+                var sourceLst = source.ToList();
+                return sourceLst.Count == 0 ? resultIfSourceEmpty : string.Join(separator, sourceLst);
+            }
+            return string.Join(separator, source);
+        }
+        public static IEnumerable<T> GetOrEmpty<T>(this IEnumerable<T> items)
+        {
+            return items ?? Enumerable.Empty<T>();
+        }
+        public static T GetOrNew<T>(this T obj) where T : class, new()
+        {
+            return obj ?? (obj = new T());
+        }
+
         public static string RemoveNs(this string str, StorageOrConceptualModels owner)
         {
             if (str.StartsWith(owner.Namespace) && str[owner.Namespace.Length] == '.')

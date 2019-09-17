@@ -24,6 +24,8 @@ namespace CharmEdmxTools.Core.CoreGlobalization
         string ErroreFixPropertiesAttributes { get; }
         string AvvioClearEdmxPreservingKeyFields { get; }
         string EliminazioneEntityDaConceptualModels { get; }
+        string EliminazioneEntityDaStorageModels { get; }
+        string EliminazioneEntityDaStorageModelsQuestion { get; }
         string EliminazioneAssociationDaConceptualModels { get; }
         string EliminazionePropertyDaConceptualModels { get; }
         string ErroreImpossibileEliminarePropertyDaStorage { get; }

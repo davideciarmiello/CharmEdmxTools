@@ -138,7 +138,7 @@ namespace CharmEdmxTools.Core.Manager
                 var storageEntityType = entityType.Storage;
                 if (storageEntityType == null) // è stata eliminata dal db, ma c'è ancora sull'edmx
                 {
-                    _logger(string.Format(Messages.Current.EliminazioneEntityDaConceptualModels, entityType.Conceptual.Name));
+                    _logger(string.Format(Messages.Current.EliminazioneEntityDaConceptualModels, entityType));
                     entityType.Remove(_edmx);
                     //DeleteTableFromConceptualModels(conceptualModels, entityType);
                 }
@@ -235,18 +235,28 @@ namespace CharmEdmxTools.Core.Manager
 
         public void FixTabelleNonPresentiInConceptual()
         {
-            foreach (var entity in _edmx.Entities.Where(x => x.Storage != null))
-            {
-                var storageEntityType = entity.Storage;
-                var conceptualEntityType = entity.Conceptual;
-                if (conceptualEntityType != null) // è stata eliminata dal db, ma c'è ancora sull'edmx
-                    continue;
-                var msg = string.Format("Attenzione: Tabella '{0}' non presente in ConceptualModels. Eliminarla dallo StorageModels?", storageEntityType.Name);
-                var res = MessageBox.Show(msg, "Avviso", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
-                if (res != DialogResult.Yes)
-                    continue;
+            var lst = _edmx.Entities.Where(x => x.Storage != null && x.Conceptual == null).ToList();
+            if (lst.Count == 0)
+                return;
+            var msg = string.Format(Messages.Current.EliminazioneEntityDaStorageModelsQuestion, lst.Select(x => x.ToString()).Join(", "));
+            var res = MessageBox.Show(msg, "Charm Edmx Tools", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+            if (res != DialogResult.Yes)
+                return;
+            foreach (var entity in lst)
                 entity.Remove(_edmx);
-            }
+            
+            //foreach (var entity in _edmx.Entities.Where(x => x.Storage != null))
+            //{
+            //    var storageEntityType = entity.Storage;
+            //    var conceptualEntityType = entity.Conceptual;
+            //    if (conceptualEntityType != null) // è stata eliminata dal db, ma c'è ancora sull'edmx
+            //        continue;
+            //    var msg = string.Format("Attenzione: Tabella '{0}' non presente in ConceptualModels. Eliminarla dallo StorageModels?", storageEntityType.Name);
+            //    var res = MessageBox.Show(msg, "Avviso", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+            //    if (res != DialogResult.Yes)
+            //        continue;
+            //    entity.Remove(_edmx);
+            //}
         }
 
 

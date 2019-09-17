@@ -36,6 +36,7 @@ namespace CharmEdmxTools.Console
                 @"Gse.Grin.ReadModel.Anagrafica\GrinAnagraficaReadEntities.edmx");
             //edmxFileName = @"C:\Davide\ProgettiGit\CharmEdmxTools\BiocarEntitiesModel.edmx";
             edmxFileName = @"D:\temp\SibicoDB.edmx";
+            edmxFileName = @"D:\temp\TstHtDbEntities.edmx";
             cfgFileName = @"D:\Progetti\Gdf\Sibico2\Sibico.sln.CharmEdmxTools";
             cfgFileName = @"D:\Progetti\Gdf\SoaGdf\SOAGDF.sln.CharmEdmxTools";
             var cfg = CharmEdmxConfiguration.Load(cfgFileName);

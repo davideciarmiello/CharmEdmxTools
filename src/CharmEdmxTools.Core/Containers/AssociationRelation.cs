@@ -26,8 +26,7 @@ namespace CharmEdmxTools.Core.Containers
             if (container.AlreadyRemoved(this))
                 return;
             new BaseItem[] { Storage, StorageAssociationSet, ConceptualAssociationSet, Conceptual }.RemoveAll();
-            if (NavigationProperties != null)
-                NavigationProperties.ForEach(x => x.Remove(container));
+            NavigationProperties?.ForEach(x => x.Remove(container));
             container.Associations.Remove(this);
 
             //Storage.XNode.Document 

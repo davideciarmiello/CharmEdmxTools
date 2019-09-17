@@ -21,5 +21,17 @@ namespace CharmEdmxTools.Core.EdmxXmlModels
         }
         public IEnumerable<Property> Properties { get { return _property.NotDeleted(); } }
         public IEnumerable<NavigationProperty> NavigationProperties { get { return _navigationProperty.NotDeleted(); } }
+
+        public XComment WarningMessage
+        {
+            get
+            {
+                var comm = IsDeleted ? null : (XNode.PreviousNode as XComment);
+                if (comm == null)
+                    return null;
+                var isMine = comm.Value.Contains($".{Name}\'") || comm.Value.Contains($"\'{Name}\'");
+                return isMine ? comm : null;
+            }
+        }
     }
 }

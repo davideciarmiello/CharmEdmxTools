@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="1601c91e-ce52-4571-b547-b26295df8eb9" Version="6.1" Language="it-IT" Publisher="Davide Ciarmiello" />
+    <Identity Id="1601c91e-ce52-4571-b547-b26295df8eb9" Version="6.2" Language="it-IT" Publisher="Davide Ciarmiello" />
     <DisplayName>Charm Edmx Tools</DisplayName>
     <Description xml:space="preserve">Tool for automatically fix EDMX problems</Description>
   </Metadata>

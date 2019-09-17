@@ -10,7 +10,7 @@ namespace CharmEdmxTools.Core.Containers
     public class EntityRelation : IRemovable
     {
         private ConcurrentDictionary<string, PropertyRelation> _propertiesPerStorageName;
-        
+
         public override string ToString()
         {
             if (Storage != null)
@@ -32,7 +32,7 @@ namespace CharmEdmxTools.Core.Containers
         {
             get
             {
-                return _propertiesPerStorageName ?? (_propertiesPerStorageName =Properties.Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name));
+                return _propertiesPerStorageName ?? (_propertiesPerStorageName = Properties.Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name));
             }
             set { _propertiesPerStorageName = value; }
         }
@@ -46,8 +46,10 @@ namespace CharmEdmxTools.Core.Containers
         {
             if (container.AlreadyRemoved(this))
                 return;
+            foreach (var comment in new[] { Storage?.WarningMessage, Conceptual?.WarningMessage }.Where(x => x != null))
+                comment.Remove();
             new BaseItem[] { Storage, Mapping, StorageEntitySet, ConceptualEntitySet, Conceptual }.RemoveAll();
-            NavigationProperties.ForEach(x => x.Remove(container));
+            NavigationProperties?.ForEach(x => x.Remove(container));
             //throw new System.NotImplementedException();
             /*var type = storageEntityType;
                 var associationToRemove = storageModels.Association.Where(it => it.DependentRoleTableName == type.Name || it.PrincipalRole == type.Name).ToArray();
