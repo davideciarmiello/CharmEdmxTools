@@ -36,7 +36,7 @@ namespace CharmEdmxTools.Console
                 @"Gse.Grin.ReadModel.Anagrafica\GrinAnagraficaReadEntities.edmx");
             //edmxFileName = @"C:\Davide\ProgettiGit\CharmEdmxTools\BiocarEntitiesModel.edmx";
             edmxFileName = @"D:\temp\SibicoDB.edmx";
-            edmxFileName = @"D:\temp\TstHtDbEntities.edmx";
+            //edmxFileName = @"D:\temp\TstHtDbEntities.edmx";
             cfgFileName = @"D:\Progetti\Gdf\Sibico2\Sibico.sln.CharmEdmxTools";
             cfgFileName = @"D:\Progetti\Gdf\SoaGdf\SOAGDF.sln.CharmEdmxTools";
             var cfg = CharmEdmxConfiguration.Load(cfgFileName);
@@ -48,6 +48,13 @@ namespace CharmEdmxTools.Console
             //var mgr = new EdmxManager(edmxFileName, System.Console.WriteLine, cfg);
             sw = Stopwatch.StartNew();
             var mgrnew = new EdmxManager(edmxFileName, null, System.Console.WriteLine, cfg);
+            //testo se nnon mappa il conceptual
+            mgrnew.EdmxContainer.Entities[0].Conceptual = null;
+            mgrnew.EdmxContainer.Entities[0].ConceptualEntitySet = null;
+            mgrnew.EdmxContainer.Entities[0].Properties = null;
+            mgrnew.EdmxContainer.Entities[0].NavigationProperties = null;
+            mgrnew.EdmxContainer.Entities[0].Mapping = null;
+
             InvokeFull(mgrnew);
             sw.Stop();
             //13 secondi

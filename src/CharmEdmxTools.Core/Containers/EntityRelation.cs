@@ -32,7 +32,7 @@ namespace CharmEdmxTools.Core.Containers
         {
             get
             {
-                return _propertiesPerStorageName ?? (_propertiesPerStorageName = Properties.Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name));
+                return _propertiesPerStorageName ?? (_propertiesPerStorageName = Properties.GetOrEmpty().Where(x => x.Storage != null).ToConcurrentDictionary(x => x.Storage.Name));
             }
             set { _propertiesPerStorageName = value; }
         }

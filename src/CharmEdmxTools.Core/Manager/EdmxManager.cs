@@ -15,6 +15,7 @@ namespace CharmEdmxTools.Core.Manager
 {
     public class EdmxManager
     {
+        public EdmxContainer EdmxContainer => _edmx;
         private readonly string _path;
         public readonly XDocument _xDoc;
         private readonly EdmxContainer _edmx;
@@ -144,7 +145,7 @@ namespace CharmEdmxTools.Core.Manager
                 }
                 else
                 {
-                    foreach (var prop in entityType.Properties)
+                    foreach (var prop in entityType.Properties.GetOrEmpty())
                     {
                         if (prop.Storage == null)
                         {
